@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Zarządzanie Paczkomatami{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>📮 Zarządzanie Paczkomatami</h1>
+        <a href="{{ url_for('admin.paczkomat_new') }}" class="btn btn-success btn-lg">
+            ➕ Dodaj Paczkomat
+        </a>
+    </div>
+
+    {% if paczkomaty %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th style="cursor: pointer; width: 10%;">
+                        <a href="{{ url_for('admin.paczkomaty', sort='id', order='desc' if sort=='id' and order=='asc' else 'asc') }}" 
+                           class="text-light text-decoration-none">
+                            ID {{ get_sort_icon('id', sort, order) }}
+                        </a>
+                    </th>
+                    <th style="cursor: pointer; width: 15%;">
+                        <a href="{{ url_for('admin.paczkomaty', sort='kod', order='desc' if sort=='kod' and order=='asc' else 'asc') }}" 
+                           class="text-light text-decoration-none">
+                            Kod {{ get_sort_icon('kod', sort, order) }}
+                        </a>
+                    </th>
+                    <th style="cursor: pointer; width: 35%;">
+                        <a href="{{ url_for('admin.paczkomaty', sort='adres', order='desc' if sort=='adres' and order=='asc' else 'asc') }}" 
+                           class="text-light text-decoration-none">
+                            Adres {{ get_sort_icon('adres', sort, order) }}
+                        </a>
+                    </th>
+                    <th style="width: 12%;">Miasto</th>
+                    <th style="width: 12%;">Centrum</th>
+                    <th style="width: 16%;">Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for paczkomat in paczkomaty %}
+                <tr>
+                    <td><strong>#{{ paczkomat.id }}</strong></td>
+                    <td>
+                        <span class="badge bg-primary">{{ paczkomat.kod }}</span>
+                    </td>
+                    <td>{{ paczkomat.adres }}</td>
+                    <td>
+                        <span class="badge bg-info">{{ paczkomat.miasto }}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-success">{{ paczkomat.centrum }}</span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin.paczkomat_edit', paczkomat_id=paczkomat.id) }}" class="btn btn-sm btn-warning">
+                            ✏️ Edytuj
+                        </a>
+                        <form method="POST" action="{{ url_for('admin.paczkomat_delete', paczkomat_id=paczkomat.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Czy na pewno usunąć?')">
+                                🗑️ Usuń
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center py-5">
+        <p>📭 Brak paczkomatów w bazie.</p>
+        <a href="{{ url_for('admin.paczkomat_new') }}" class="btn btn-primary">
+            ➕ Dodaj pierwszy paczkomat
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    th a:hover {
+        color: #87CEEB !important;
+        text-decoration: underline !important;
+    }
+
+    .badge {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}

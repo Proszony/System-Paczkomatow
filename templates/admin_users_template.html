@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Użytkownicy{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <h1 class="mb-4">👥 Zarządzanie Użytkownikami</h1>
+
+    <!-- KLIENCI -->
+    <div class="mb-5">
+        <h2 class="mb-3">
+            👤 Klienci
+            <span class="badge bg-primary">{{ klienci|length }}</span>
+        </h2>
+        
+        {% if klienci %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="cursor: pointer; width: 10%;">
+                            <a href="{{ url_for('admin.uzytkownicy', sort='id', order='desc' if sort=='id' and order=='asc' else 'asc') }}" 
+                               class="text-light text-decoration-none">
+                                ID {{ get_sort_icon('id', sort, order) if sort else '⬌' }}
+                            </a>
+                        </th>
+                        <th style="cursor: pointer; width: 20%;">
+                            <a href="{{ url_for('admin.uzytkownicy', sort='imie', order='desc' if sort=='imie' and order=='asc' else 'asc') }}" 
+                               class="text-light text-decoration-none">
+                                Imię {{ get_sort_icon('imie', sort, order) if sort else '⬌' }}
+                            </a>
+                        </th>
+                        <th style="cursor: pointer; width: 20%;">
+                            <a href="{{ url_for('admin.uzytkownicy', sort='nazwisko', order='desc' if sort=='nazwisko' and order=='asc' else 'asc') }}" 
+                               class="text-light text-decoration-none">
+                                Nazwisko {{ get_sort_icon('nazwisko', sort, order) if sort else '⬌' }}
+                            </a>
+                        </th>
+                        <th style="cursor: pointer; width: 30%;">
+                            <a href="{{ url_for('admin.uzytkownicy', sort='email', order='desc' if sort=='email' and order=='asc' else 'asc') }}" 
+                               class="text-light text-decoration-none">
+                                Email {{ get_sort_icon('email', sort, order) if sort else '⬌' }}
+                            </a>
+                        </th>
+                        <th style="width: 12%;">Status</th>
+                        <th style="width: 8%;">Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for klient in klienci %}
+                    <tr>
+                        <td><strong>#{{ klient.id }}</strong></td>
+                        <td>{{ klient.imie }}</td>
+                        <td>{{ klient.nazwisko }}</td>
+                        <td>{{ klient.email }}</td>
+                        <td>
+                            <span class="badge bg-success">{{ klient.status_uzytkownika }}</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#detailsModal{{ klient.id }}">
+                                👁️ Szczegóły
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            📭 Brak klientów w bazie.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- PRACOWNICY -->
+    <div>
+        <h2 class="mb-3">
+            👨‍💼 Pracownicy
+            <span class="badge bg-primary">{{ pracownicy|length }}</span>
+        </h2>
+        
+        {% if pracownicy %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width: 10%;">ID</th>
+                        <th style="width: 20%;">Imię</th>
+                        <th style="width: 20%;">Nazwisko</th>
+                        <th style="width: 30%;">Email</th>
+                        <th style="width: 12%;">Rola</th>
+                        <th style="width: 8%;">Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pracownik in pracownicy %}
+                    <tr>
+                        <td><strong>#{{ pracownik.id }}</strong></td>
+                        <td>{{ pracownik.imie }}</td>
+                        <td>{{ pracownik.nazwisko }}</td>
+                        <td>{{ pracownik.email }}</td>
+                        <td>
+                            {% if pracownik.status_uzytkownika == 'Administrator' %}
+                                <span class="badge bg-danger">👑 {{ pracownik.status_uzytkownika }}</span>
+                            {% elif pracownik.status_uzytkownika == 'Kierownik' %}
+                                <span class="badge bg-warning">📋 {{ pracownik.status_uzytkownika }}</span>
+                            {% else %}
+                                <span class="badge bg-info">📦 {{ pracownik.status_uzytkownika }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#detailsModalPr{{ pracownik.id }}">
+                                👁️ Szczegóły
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            📭 Brak pracowników w bazie.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    th a:hover {
+        color: #87CEEB !important;
+        text-decoration: underline !important;
+    }
+
+    .badge {
+        padding: 0.5rem 0.75rem;
+    }
+</style>
+{% endblock %}

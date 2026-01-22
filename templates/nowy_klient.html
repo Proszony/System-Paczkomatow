@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Rejestracja klienta – CBD{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Rejestracja nowego klienta</h1>
+    
+    {% if blad %}
+        <div class="alert-error">⚠️ {{ blad }}</div>
+    {% endif %}
+    
+    {% if sukces %}
+        <div class="alert-success">✅ {{ sukces }}</div>
+    {% endif %}
+    
+    <form method="post">
+        <label for="imie">Imię:</label>
+        <input type="text" id="imie" name="imie" required>
+        
+        <label for="nazwisko">Nazwisko:</label>
+        <input type="text" id="nazwisko" name="nazwisko" required>
+        
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+        
+        <label for="telefon">Telefon:</label>
+        <input type="tel" id="telefon" name="telefon" required>
+        
+        <button type="submit">Zarejestruj</button>
+    </form>
+</div>
+{% endblock %}

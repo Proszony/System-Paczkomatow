@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Paczkomaty Kierownika{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>📮 Paczkomaty w Moim Centrum</h1>
+
+    {% if paczkomaty %}
+    <div class="table-responsive mt-4">
+        <table class="table table-striped">
+            <thead>
+		    <tr>
+			<th>Kod</th>
+			<th>Adres</th>
+			<th>Centrum</th>
+			<th>Zapełnienie</th>
+		    </tr>
+		</thead>
+		<tbody>
+		    {% for paczkomat in paczkomaty %}
+		    <tr>
+			<td><strong>{{ paczkomat.kod }}</strong></td>
+			<td>{{ paczkomat.adres }}</td>
+			<td>{{ paczkomat.centrum }}</td>
+			<td>
+			    S: {{ paczkomat.zajete_s }}/{{ paczkomat.liczba_s or 0 }},
+			    M: {{ paczkomat.zajete_m }}/{{ paczkomat.liczba_m or 0 }},
+			    L: {{ paczkomat.zajete_l }}/{{ paczkomat.liczba_l or 0 }}
+			</td>
+		    </tr>
+		    {% endfor %}
+	     </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">Brak paczkomatów w Twoim centrum.</div>
+    {% endif %}
+
+    <a href="{{ url_for('kierownik.dashboard') }}" class="btn btn-secondary mt-4">Wróć do Dashboardu</a>
+</div>
+{% endblock %}

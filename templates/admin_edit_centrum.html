@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Edycja Centrum{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% if centrum and centrum.id %}
+        <h1>✏️ Edycja Centrum</h1>
+    {% else %}
+        <h1>➕ Dodaj Nowe Centrum</h1>
+    {% endif %}
+    
+    {% if blad %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ blad }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <form method="POST" class="mt-4">
+        <div class="mb-3">
+            <label for="nazwa" class="form-label">Nazwa Centrum *</label>
+            <input type="text" class="form-control" id="nazwa" name="nazwa" 
+                   value="{{ centrum.nazwa or '' }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="adres" class="form-label">Adres *</label>
+            <input type="text" class="form-control" id="adres" name="adres" 
+                   value="{{ centrum.adres or '' }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="miasto_id" class="form-label">Miasto *</label>
+            <select class="form-select" id="miasto_id" name="miasto_id" required>
+                <option value="">-- Wybierz miasto --</option>
+                {% for m in miasta %}
+                <option value="{{ m.id }}" 
+                        {% if centrum and centrum.miasto_id == m.id %}selected{% endif %}>
+                    {{ m.nazwa }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="szerokosc" class="form-label">Szerokość Geograficzna *</label>
+            <input type="number" class="form-control" id="szerokosc" name="szerokosc_geograficzna" 
+                   value="{{ centrum.szerokosc_geograficzna or '' }}" 
+                   step="0.00000001" min="-90" max="90" required>
+            <small class="form-text text-muted">np. 52.22988605</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="dlugosc" class="form-label">Długość Geograficzna *</label>
+            <input type="number" class="form-control" id="dlugosc" name="dlugosc_geograficzna" 
+                   value="{{ centrum.dlugosc_geograficzna or '' }}" 
+                   step="0.00000001" min="-180" max="180" required>
+            <small class="form-text text-muted">np. 21.01222196</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="pojemnosc" class="form-label">Pojemność (liczba paczek) *</label>
+            <input type="number" class="form-control" id="pojemnosc" name="pojemnosc" 
+                   value="{{ centrum.pojemnosc or '' }}" min="1" required>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Zapisz</button>
+            <a href="{{ url_for('admin.centra') }}" class="btn btn-secondary">Anuluj</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Zarządzanie Centrami{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>📦 Zarządzanie Centrami Logistycznymi</h1>
+        <a href="{{ url_for('admin.centrum_new') }}" class="btn btn-success btn-lg">
+            ➕ Dodaj Centrum
+        </a>
+    </div>
+
+    {% if centra %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th style="cursor: pointer; width: 10%;">
+                        <a href="{{ url_for('admin.centra', sort='id', order='desc' if sort=='id' and order=='asc' else 'asc') }}" 
+                           class="text-light text-decoration-none">
+                            ID {{ get_sort_icon('id', sort, order) }}
+                        </a>
+                    </th>
+                    <th style="cursor: pointer; width: 25%;">
+                        <a href="{{ url_for('admin.centra', sort='nazwa', order='desc' if sort=='nazwa' and order=='asc' else 'asc') }}" 
+                           class="text-light text-decoration-none">
+                            Nazwa {{ get_sort_icon('nazwa', sort, order) }}
+                        </a>
+                    </th>
+                    <th style="cursor: pointer; width: 35%;">
+                        <a href="{{ url_for('admin.centra', sort='adres', order='desc' if sort=='adres' and order=='asc' else 'asc') }}" 
+                           class="text-light text-decoration-none">
+                            Adres {{ get_sort_icon('adres', sort, order) }}
+                        </a>
+                    </th>
+                    <th style="width: 15%;">Miasto</th>
+                    <th style="width: 15%;">Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for centrum in centra %}
+                <tr>
+                    <td><strong>#{{ centrum.id }}</strong></td>
+                    <td>{{ centrum.nazwa }}</td>
+                    <td>{{ centrum.adres }}</td>
+                    <td>
+                        <span class="badge bg-info">{{ centrum.miasto }}</span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin.centrum_edit', centrum_id=centrum.id) }}" class="btn btn-sm btn-warning">
+                            ✏️ Edytuj
+                        </a>
+                        <form method="POST" action="{{ url_for('admin.centrum_delete', centrum_id=centrum.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Czy na pewno usunąć?')">
+                                🗑️ Usuń
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center py-5">
+        <p>📭 Brak centrów logistycznych w bazie.</p>
+        <a href="{{ url_for('admin.centrum_new') }}" class="btn btn-primary">
+            ➕ Dodaj pierwsze centrum
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    th a:hover {
+        color: #87CEEB !important;
+        text-decoration: underline !important;
+    }
+
+    .badge {
+        padding: 0.5rem 0.75rem;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Edytuj przesyłkę{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>✏️ Edycja przesyłki #{{ przesylka.numer_przesylki }}</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, msg in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' }} alert-dismissible fade show mt-3" role="alert">
+                    {{ msg }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Numer przesyłki</label>
+                    <input type="text" class="form-control" value="{{ przesylka.numer_przesylki }}" disabled>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Status *</label>
+                    <select name="status_id" class="form-select" required>
+                        {% for s in statusy %}
+                            <option value="{{ s.id }}"
+                                {% if s.id == przesylka.status_id %}selected{% endif %}>
+                                {{ s.status }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <small class="form-text text-muted">
+                        Wybierz „Anulowana”, aby anulować przesyłkę.
+                    </small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Paczkomat docelowy (kod)</label>
+                    <input type="text" name="paczkomat_docelowy_kod"
+                           class="form-control"
+                           value="{{ przesylka.paczkomat_docelowy_kod }}"
+                           required>
+                    <small class="form-text text-muted">
+                        Kod w formacie XXXdddd (np. WRO1234).
+                    </small>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="flagaUszkodzona"
+                           name="flaga_uszkodzona"
+                           {% if przesylka.flaga_uszkodzona %}checked{% endif %}>
+                    <label class="form-check-label" for="flagaUszkodzona">
+                        Oznacz przesyłkę jako potencjalnie uszkodzoną
+                    </label>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Uwagi</label>
+                    <textarea name="uwagi" class="form-control" rows="3">{{ przesylka.uwagi or '' }}</textarea>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{{ url_for('przesylka.status', przesylka_id=przesylka.id) }}" class="btn btn-secondary">
+                        Anuluj edycję
+                    </a>
+                    <button type="submit" class="btn btn-success"
+                            onclick="return confirm('Na pewno zapisać zmiany dla tej przesyłki?');">
+                        💾 Zapisz zmiany
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Status przesyłki{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">📦 Status przesyłki #{{ przesylka.id }}</h1>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Informacje o przesyłce</h5>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Numer:</strong> {{ przesylka.numer_przesylki }}</p>
+                    <p><strong>Nadawca:</strong> {{ przesylka.nadawca_imie }} {{ przesylka.nadawca_nazwisko }}</p>
+                    <p><strong>Odbiorca:</strong> {{ przesylka.odbiorca_imie }} {{ przesylka.odbiorca_nazwisko }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Status:</strong>
+                        <span class="badge bg-primary">{{ przesylka.status }}</span>
+                    </p>
+                    <p><strong>Koszt:</strong> {{ "%.2f"|format(przesylka.koszt) }} zł</p>
+                    <p><strong>Data nadania:</strong> {{ przesylka.data_nadania }}</p>
+                </div>
+            </div>
+
+            <!-- NOWA SEKCJA: trasa skąd–dokąd -->
+            <hr>
+            <p>
+                <strong>Trasa:</strong>
+                Od:
+                {{ przesylka.miasto_nadania_nazwa }}
+                / {{ przesylka.paczkomat_nadania_kod }}
+                →
+                Do:
+                {{ przesylka.miasto_docelowe_nazwa }}
+                / {{ przesylka.paczkomat_docelowy_kod }}
+            </p>
+	{% if session.user_type == 'Pracownik' and session.user_role == 'Administrator' %}
+	    <a href="{{ url_for('admin.admin_edytuj_przesylke', przesylka_id=przesylka.id) }}"
+	       class="btn btn-warning mt-3">
+		✏️ Edytuj przesyłkę
+	    </a>
+	{% endif %}
+
+	
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Historia statusów</h5>
+        </div>
+        <div class="card-body">
+            {% if historia %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Data zmiany</th>
+                        <th>Uwagi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in historia %}
+                    <tr>
+                        <td>{{ h.status_na }}</td>
+                        <td>{{ h.data_zmiany }}</td>
+                        <td>{{ h.uwagi or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">Brak historii statusów dla tej przesyłki.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <a href="{{ url_for('przesylka.lista') }}" class="btn btn-secondary mt-3">
+        ← Powrót do listy
+    </a>
+</div>
+{% endblock %}

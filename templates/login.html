@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Logowanie{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h1 class="text-center mb-4">🔐 Logowanie do CBD</h1>
+
+                    {% if blad %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ blad }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input 
+                                type="email" 
+                                class="form-control form-control-lg" 
+                                id="email" 
+                                name="email" 
+                                placeholder="twoj@email.com"
+                                required
+                                autofocus>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="haslo" class="form-label">Hasło</label>
+                            <input 
+                                type="password" 
+                                class="form-control form-control-lg" 
+                                id="haslo" 
+                                name="haslo" 
+                                placeholder="Twoje hasło"
+                                required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                            ✅ Zaloguj się
+                        </button>
+                    </form>
+
+                    <hr>
+
+                    <p class="text-center text-muted mb-0">
+                        Nie masz konta? <a href="{{ url_for('auth.register') }}" class="fw-bold">Zarejestruj się</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

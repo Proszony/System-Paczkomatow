@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Rejestracja{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h1 class="text-center mb-4">📝 Rejestracja</h1>
+
+                    {% if blad %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ blad }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+
+                    {% if sukces %}
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ sukces }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="imie" class="form-label">Imię</label>
+                            <input type="text" class="form-control" id="imie" name="imie" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="nazwisko" class="form-label">Nazwisko</label>
+                            <input type="text" class="form-control" id="nazwisko" name="nazwisko" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="telefon" class="form-label">Telefon</label>
+                            <input type="tel" class="form-control" id="telefon" name="telefon" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="haslo" class="form-label">Hasło</label>
+                            <input type="password" class="form-control" id="haslo" name="haslo" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-lg w-100 mb-3">
+                            ✅ Utwórz konto
+                        </button>
+                    </form>
+
+                    <hr>
+
+                    <p class="text-center text-muted mb-0">
+                        Masz już konto? <a href="{{ url_for('auth.login') }}" class="fw-bold">Zaloguj się</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

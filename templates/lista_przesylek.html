@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Lista przesyłek – CBD{% endblock %}
+
+{% block content %}
+<div class="card p-4">
+    <h1 class="mb-4">📋 Lista przesyłek</h1>
+    
+    {% if przesylki %}
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Numer</th>
+                    <th>Nadawca</th>
+                    <th>Odbiorca</th>
+                    <th>Status</th>
+                    <th>Koszt</th>
+                    <th>Data nadania</th>
+                    <th>Akcja</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for p in przesylki %}
+                <tr>
+                    <td>{{ p.id }}</td>
+                    <td>{{ p.numer_przesylki }}</td>
+                    <td>{{ p.nadawca }}</td>
+                    <td>{{ p.odbiorca }}</td>
+                    <td>{{ p.status }}</td>
+                    <td>{{ "%.2f"|format(p.koszt) }} zł</td>
+                    <td>{{ p.data_nadania }}</td>
+                    <td>
+                        <a href="{{ url_for('przesylka.status', przesylka_id=p.id) }}" class="btn btn-sm btn-info">
+                            Szczegóły
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Brak przesyłek w systemie.</p>
+    {% endif %}
+</div>
+{% endblock %}

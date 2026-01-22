@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Paczkomaty{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>📮 Zarządzanie Paczkomatami</h1>
+        <a href="{{ url_for('admin.paczkomat_new') }}" class="btn btn-success">+ Dodaj Paczkomat</a>
+    </div>
+
+    {% if paczkomaty %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Kod</th>
+                    <th>Adres</th>
+                    <th>Miasto</th>
+                    <th>Centrum</th>
+                    <th>Zapełnienie</th>
+                    <th>Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for paczkomat in paczkomaty %}
+                <tr>
+                    <td>{{ paczkomat.id }}</td>
+                    <td><strong>{{ paczkomat.kod }}</strong></td>
+                    <td>{{ paczkomat.adres }}</td>
+                    <td>{{ paczkomat.miasto }}</td>
+                    <td>{{ paczkomat.centrum }}</td>
+                    <td>
+		        S: {{ paczkomat.zajete_s }}/{{ paczkomat.liczba_s or 0 }},
+		        M: {{ paczkomat.zajete_m }}/{{ paczkomat.liczba_m or 0 }},
+		        L: {{ paczkomat.zajete_l }}/{{ paczkomat.liczba_l or 0 }}
+        	    </td>
+                    <td>
+                        <a href="{{ url_for('admin.paczkomat_edit', paczkomat_id=paczkomat.id) }}" class="btn btn-sm btn-warning">Edytuj</a>
+                        <form method="POST" action="{{ url_for('admin.paczkomat_delete', paczkomat_id=paczkomat.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Czy na pewno usunąć?')">Usuń</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">Brak paczkomatów w bazie.</div>
+    {% endif %}
+</div>
+{% endblock %}

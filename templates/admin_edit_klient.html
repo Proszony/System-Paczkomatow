@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Edycja Klienta{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>✏️ Edycja Klienta</h1>
+    
+    {% if blad %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ blad }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <form method="POST" class="mt-4">
+        <div class="mb-3">
+            <label for="imie" class="form-label">Imię</label>
+            <input type="text" class="form-control" id="imie" name="imie" value="{{ klient.imie or '' }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="nazwisko" class="form-label">Nazwisko</label>
+            <input type="text" class="form-control" id="nazwisko" name="nazwisko" value="{{ klient.nazwisko or '' }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" value="{{ klient.email or '' }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="telefon" class="form-label">Telefon</label>
+            <input type="tel" class="form-control" id="telefon" name="telefon" value="{{ klient.telefon or '' }}" required>
+        </div>
+
+        {% if statusy %}
+        <div class="mb-3">
+            <label for="status_id" class="form-label">Status</label>
+            <select class="form-select" id="status_id" name="status_id" required>
+                <option value="">-- Wybierz status --</option>
+                {% for status in statusy %}
+                <option value="{{ status.id }}" {% if status.id == klient.status_id %}selected{% endif %}>
+                    {{ status.status }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Zapisz</button>
+            <a href="{{ url_for('admin.uzytkownicy') }}" class="btn btn-secondary">Anuluj</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

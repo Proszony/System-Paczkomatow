@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Dodaj Kierownika{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1>👨‍💼 Dodaj nowego kierownika</h1>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, msg in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' }} alert-dismissible fade show mt-3" role="alert">
+                            {{ msg }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="card mt-4">
+                <div class="card-body">
+                    <form method="POST">
+                        <!-- Imię i Nazwisko -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Imię *</label>
+                                <input type="text" class="form-control" name="imie" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Nazwisko *</label>
+                                <input type="text" class="form-control" name="nazwisko" required>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label class="form-label">Email (login) *</label>
+                            <input type="email" class="form-control" name="email" required>
+                            <small class="form-text text-muted">Email będzie używany do logowania</small>
+                        </div>
+
+                        <!-- Telefon i Centrum -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Telefon *</label>
+                                <input type="tel" class="form-control" name="telefon" required>
+                                <small class="form-text text-muted">np. 123456789</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Centrum Logistyczne *</label>
+                                <select class="form-select" name="centrum_id" required>
+                                    <option value="">-- Wybierz centrum --</option>
+                                    {% for centrum in centra %}
+                                    <option value="{{ centrum.id }}">{{ centrum.nazwa }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Adres -->
+                        <div class="mb-3">
+                            <label class="form-label">Adres</label>
+                            <textarea class="form-control" name="adres" rows="2" placeholder="Opcjonalnie"></textarea>
+                        </div>
+
+                        <!-- Hasło -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Hasło *</label>
+                                <input type="password" class="form-control" name="haslo" id="haslo" required minlength="6">
+                                <small class="form-text text-muted">Min. 6 znaków</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Powtórz hasło *</label>
+                                <input type="password" class="form-control" name="powtorz_haslo" id="powtorz_haslo" required minlength="6">
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Przyciski -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Anuluj</a>
+                            <button type="submit" class="btn btn-success">💾 Utwórz kierownika</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Walidacja haseł
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const haslo = document.getElementById('haslo').value;
+        const powtorz_haslo = document.getElementById('powtorz_haslo').value;
+
+        if (haslo !== powtorz_haslo) {
+            e.preventDefault();
+            alert('❌ Hasła nie są identyczne!');
+            return false;
+        }
+    });
+</script>
+{% endblock %}
+

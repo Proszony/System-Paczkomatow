@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Mój Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="row">
+        <!-- SIDEBAR -->
+        <div class="col-lg-3 mb-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">👤 {{ session.user_name }}</h5>
+                    <hr>
+                    <div class="list-group">
+                        <a href="{{ url_for('klient.dashboard', filter='all') }}"
+                           class="list-group-item list-group-item-action {% if current_filter == 'all' %}active{% endif %}">
+                            📊 Wszystkie przesyłki
+                        </a>
+                        <a href="{{ url_for('klient.dashboard', filter='delivered') }}"
+			   class="list-group-item list-group-item-action {% if current_filter == 'delivered' %}active{% endif %}">
+			    ✅ Dostarczone
+			</a>
+                        <a href="{{ url_for('klient.dashboard', filter='in_transit') }}"
+                           class="list-group-item list-group-item-action {% if current_filter == 'in_transit' %}active{% endif %}">
+                            📦 W trasie
+                        </a>
+                        <a href="{{ url_for('przesylka.nadaj') }}"
+                           class="list-group-item list-group-item-action">
+                            ➕ Nowa Przesyłka
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">ℹ️ Informacje</h6>
+                    <small class="text-muted">
+                        <p class="mb-2">
+                            <strong>Email:</strong><br>
+                            {{ user_email or "(brak danych)" }}
+                        </p>
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- GŁÓWNY CONTENT -->
+        <div class="col-lg-9">
+		{% with messages = get_flashed_messages(with_categories=true) %}
+		  {% if messages %}
+		    {% for category, message in messages %}
+		      <div class="alert alert-{{ 'success' if category == 'success' else 'info' }}
+				  alert-dismissible fade show alert-flash mt-2"
+			   role="alert">
+			{{ message }}
+			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+		      </div>
+		    {% endfor %}
+		  {% endif %}
+		{% endwith %}
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">📦 Moje Przesyłki</h4>
+                </div>
+                <div class="card-body p-0">
+                    {% if przesylki %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="min-width: 140px;">Numer</th>
+                                    <th style="min-width: 180px;">Nadawca</th>
+                                    <th style="min-width: 180px;">Odbiorca</th>
+                                    <th style="min-width: 120px;">Status</th>
+                                    <th style="min-width: 80px;">Koszt</th>
+                                    <th style="min-width: 140px;">Data Nadania</th>
+                                    <th style="min-width: 100px;">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for przesylka in przesylki %}
+                                <tr>
+                                    <td><strong>{{ przesylka.numer_przesylki }}</strong></td>
+                                    <td>
+                                        <small>{{ przesylka.nadawca }}</small><br>
+                                        <code style="font-size: 0.75rem;">{{ przesylka.nadawca_email }}</code>
+                                    </td>
+                                    <td>
+                                        <small>{{ przesylka.odbiorca }}</small><br>
+                                        <code style="font-size: 0.75rem;">{{ przesylka.odbiorca_email }}</code>
+                                    </td>
+                                    <td>
+                                        {% if przesylka.status in ['Doreczona', 'Odebrana'] %}
+                                            <span class="badge bg-success">✅ {{ przesylka.status }}</span>
+                                        {% elif przesylka.status in ['Utworzona'] %}
+                                            <span class="badge bg-secondary">📦 {{ przesylka.status }}</span>
+                                        {% elif przesylka.status in ['Nadana', 'Przyjeta w centrum', 'W transporcie'] %}
+                                            <span class="badge bg-info">📦 {{ przesylka.status }}</span>
+                                        {% elif przesylka.status == 'Anulowana' %}
+                                            <span class="badge bg-danger">⚠️ {{ przesylka.status }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ przesylka.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><strong>{{ "%.2f"|format(przesylka.koszt) }} zł</strong></td>
+                                    <td>
+                                        <small>
+                                            {{ przesylka.data_nadania.strftime("%Y-%m-%d %H:%M") if przesylka.data_nadania else "-" }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('klient.szczegoly_przesylki', przesylka_id=przesylka.id) }}"
+                                           class="btn btn-sm btn-info">
+                                            👁️ Szczegóły
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info m-3">
+                        📭 Nie masz jeszcze żadnych przesyłek.<br>
+                        <a href="{{ url_for('przesylka.nadaj') }}" class="btn btn-primary btn-sm mt-2">
+                            ➕ Nadaj pierwszą przesyłkę
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- STATYSTYKI -->
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">📊 Wszystkie</h5>
+                            <p class="display-4">{{ wszystkie }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">✅ Dostarczone</h5>
+                            <p class="display-4 text-success">{{ dostarczone }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">📦 W trasie</h5>
+                            <p class="display-4 text-info">{{ w_trasie }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-group-item {
+        border: 1px solid #dee2e6;
+        padding: 0.75rem 1.25rem;
+    }
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+        text-decoration: none;
+    }
+    .list-group-item.active {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: white;
+    }
+    .table-hover tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+    .badge {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+    code {
+        background-color: #f5f5f5;
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+        font-size: 0.75rem;
+        display: inline-block;
+        max-width: 100%;
+        word-break: break-word;
+    }
+    .table td {
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+    .btn-sm {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+    }
+    @media (max-width: 992px) {
+        .col-lg-3, .col-lg-9 {
+            max-width: 100%;
+            flex: 0 0 100%;
+        }
+    }
+    .table th, .table td {
+        padding: 0.5rem 0.75rem;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        document.querySelectorAll('.alert-flash').forEach(function(alertNode) {
+            const alert = bootstrap.Alert.getOrCreateInstance(alertNode);
+            alert.close();
+        });
+    }, 3000); // 3 sekundy
+});
+</script>
+{% endblock %}

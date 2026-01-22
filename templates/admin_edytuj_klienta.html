@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Edytuj klienta{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1>✏️ Edytuj klienta</h1>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, msg in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' }} alert-dismissible fade show mt-3" role="alert">
+                            {{ msg }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="card mt-4">
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Imię *</label>
+                                <input type="text" class="form-control" name="imie"
+                                       value="{{ klient.imie }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Nazwisko *</label>
+                                <input type="text" class="form-control" name="nazwisko"
+                                       value="{{ klient.nazwisko }}" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="form-control" name="email"
+                                   value="{{ klient.email }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Telefon *</label>
+                            <input type="tel" class="form-control" name="telefon"
+                                   value="{{ klient.telefon }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Adres</label>
+                            <input type="text" class="form-control" name="adres"
+                                   value="{{ klient.adres or '' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Miasto</label>
+                            <input type="text" class="form-control" name="miasto"
+                                   value="{{ klient.miasto or '' }}">
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-3">
+                            <label class="form-label">Nowe hasło (opcjonalnie)</label>
+                            <input type="password" class="form-control" name="nowe_haslo"
+                                   placeholder="Zostaw puste, jeśli nie chcesz zmieniać hasła">
+                            <small class="form-text text-muted">
+                                Hasło zostanie zapisane jako hash w bazie.
+                            </small>
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="aktywnySwitch"
+                                   name="aktywny"
+                                   {% if klient.status_nazwa == 'Aktywny' %}checked{% endif %}>
+                            <label class="form-check-label" for="aktywnySwitch">
+                                Konto aktywne
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('admin.uzytkownicy') }}" class="btn btn-secondary">Anuluj</a>
+                            <button type="submit" class="btn btn-success">
+                                💾 Zapisz zmiany
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

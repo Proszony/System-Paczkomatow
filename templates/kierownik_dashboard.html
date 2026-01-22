@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Panel Kierownika{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>📊 Panel Kierownika</h1>
+    <p class="text-muted">Centrum: <strong>{{ centrum.nazwa }}</strong></p>
+
+	<div class="row mt-4">
+
+	    <div class="col-md-3 d-flex">
+		<div class="card flex-fill text-center">
+		    <div class="card-body">
+		        <h5 class="card-title">Paczkomaty</h5>
+		        <p class="card-text display-4">{{ paczkomaty }}</p>
+		        <a href="{{ url_for('kierownik.paczkomaty') }}" class="btn btn-primary btn-sm">Zarządzaj</a>
+		    </div>
+		</div>
+	    </div>
+
+	    <div class="col-md-3 d-flex">
+		<div class="card flex-fill text-center">
+		    <div class="card-body">
+		        <h5 class="card-title">Nadane z centrum</h5>
+		        <p class="card-text display-4">{{ nadane_z_centrum }}</p>
+		        <a href="{{ url_for('kierownik.przesylki_nadane_z_centrum') }}" class="btn btn-primary btn-sm">
+		            Szczegóły
+		        </a>
+		    </div>
+		</div>
+	    </div>
+
+	    <div class="col-md-3 d-flex">
+		<div class="card flex-fill text-center">
+		    <div class="card-body">
+		        <h5 class="card-title">Do centrum</h5>
+		        <p class="card-text display-4">{{ do_centrum }}</p>
+		        <a href="{{ url_for('kierownik.przesylki_do_centrum') }}" class="btn btn-primary btn-sm">
+		            Szczegóły
+		        </a>
+		    </div>
+		</div>
+	    </div>
+
+	    <div class="col-md-3 d-flex">
+		<div class="card flex-fill text-center">
+		    <div class="card-body">
+		        <h5 class="card-title">W transporcie</h5>
+		        <p class="card-text display-4">{{ w_transporcie }}</p>
+		    </div>
+		</div>
+	    </div>
+
+	</div>
+
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <p class="text-muted">Adres: {{ centrum.adres }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

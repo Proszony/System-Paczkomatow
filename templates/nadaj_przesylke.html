@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Nadaj Przesyłkę{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>📮 Nadaj Nową Przesyłkę</h1>
+
+    {% if blad %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ blad }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    {% if sukces %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        ✅ {{ sukces }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <form method="POST" id="formPrzesylka">
+                <div class="row">
+                    <!-- NADAWCA (zalogowany) -->
+                    <div class="col-md-6">
+                        <h5 class="mb-3">📤 Nadawca</h5>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Twoje dane</label>
+                            <input type="text" class="form-control" 
+                                   value="{{ nadawca.imie }} {{ nadawca.nazwisko }} ({{ nadawca.email }})" 
+                                   disabled>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="paczkomat_nadania_id" class="form-label">Paczkomat Nadania</label>
+                            <select class="form-select" id="paczkomat_nadania_id" name="paczkomat_nadania_id" required>
+                                <option value="">-- Wybierz paczkomat --</option>
+                                {% for paczkomat in paczkomaty %}
+                                <option value="{{ paczkomat.id }}">
+                                    {{ paczkomat.kod }} - {{ paczkomat.adres }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- ODBIORCA -->
+                    <div class="col-md-6">
+                        <h5 class="mb-3">📥 Odbiorca</h5>
+                        
+                        <div class="mb-3">
+                            <label for="odbiorca_id" class="form-label">Wybierz Odbiorcę</label>
+                            <select class="form-select" id="odbiorca_id" name="odbiorca_id" required>
+                                <option value="">-- Wybierz odbiorcę --</option>
+                                {% for klient in odbiorcy %}
+                                <option value="{{ klient.id }}">
+                                    {{ klient.imie }} {{ klient.nazwisko }} ({{ klient.email }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="paczkomat_docelowy_id" class="form-label">Paczkomat Docelowy</label>
+                            <select class="form-select" id="paczkomat_docelowy_id" name="paczkomat_docelowy_id" required>
+                                <option value="">-- Wybierz paczkomat --</option>
+                                {% for paczkomat in paczkomaty %}
+                                <option value="{{ paczkomat.id }}">
+                                    {{ paczkomat.kod }} - {{ paczkomat.adres }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- PARAMETRY PRZESYŁKI -->
+                <h5 class="mb-3">📦 Parametry Przesyłki</h5>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="rozmiar_id" class="form-label">Rozmiar</label>
+                            <select class="form-select" id="rozmiar_id" name="rozmiar_id" required>
+                                <option value="">-- Wybierz rozmiar --</option>
+                                {% for rozmiar in rozmiary %}
+                                <option value="{{ rozmiar.id }}">
+                                    {{ rozmiar.rozmiar }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">S: 5 zł, M: 10 zł, L: 15 zł</small>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="waga" class="form-label">Waga (kg)</label>
+                            <input type="number" class="form-control" id="waga" name="waga"
+                                   value="0" min="0" step="0.1" required>
+                            <small class="form-text text-muted">
+                                Podaj przybliżoną wagę przesyłki w kilogramach, od 0.1 kg do 999.9 kg.
+                            </small>
+                            <small class="form-text text-muted">Ponad 10 kg: +5 zł</small>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="koszt_przesylki" class="form-label">Przewidywany Koszt</label>
+                            <input type="text" class="form-control" id="koszt_przesylki" readonly value="-- zł">
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- PRZYCISKI -->
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        ✅ Utwórz Przesyłkę
+                    </button>
+                    <a href="{{ url_for('klient.dashboard') }}" class="btn btn-secondary btn-lg">
+                        Anuluj
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- INFORMACJE -->
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">💡 Ceny Rozmiarów</h5>
+                    <ul class="list-unstyled">
+                        <li><strong>S (Small):</strong> 5 zł</li>
+                        <li><strong>M (Medium):</strong> 10 zł</li>
+                        <li><strong>L (Large):</strong> 15 zł</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">⚖️ Cena za Wagę</h5>
+                    <ul class="list-unstyled">
+                        <li><strong>Do 10 kg:</strong> 0 zł</li>
+                        <li><strong>Ponad 10 kg:</strong> +5 zł</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">📐 Formuła Ceny</h5>
+                    <code>
+                        Koszt = (0.05 × Dystans km)<br>
+                        + Cena rozmiaru<br>
+                        + Cena wagi
+                    </code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Walidacja formularza
+    document.getElementById('formPrzesylka').addEventListener('submit', function(e) {
+        if (document.getElementById('odbiorca_id').value === '') {
+            e.preventDefault();
+            alert('❌ Wybierz odbiorcę!');
+            return false;
+        }
+        if (document.getElementById('paczkomat_nadania_id').value === '') {
+            e.preventDefault();
+            alert('❌ Wybierz paczkomat nadania!');
+            return false;
+        }
+        if (document.getElementById('paczkomat_docelowy_id').value === '') {
+            e.preventDefault();
+            alert('❌ Wybierz paczkomat docelowy!');
+            return false;
+        }
+        if (document.getElementById('rozmiar_id').value === '') {
+            e.preventDefault();
+            alert('❌ Wybierz rozmiar przesyłki!');
+            return false;
+        }
+    });
+
+    // Podgląd kosztu – liczy backend
+    async function obliczKoszt() {
+        const paczNadania = document.getElementById('paczkomat_nadania_id').value;
+        const paczDoc = document.getElementById('paczkomat_docelowy_id').value;
+        const rozmiar = document.getElementById('rozmiar_id').value;
+        const waga = document.getElementById('waga').value;
+        const poleKoszt = document.getElementById('koszt_przesylki');
+
+        if (!paczNadania || !paczDoc || !rozmiar || !waga) {
+            poleKoszt.value = '-- zł';
+            return;
+        }
+
+        try {
+            const params = new URLSearchParams({
+                paczkomat_nadania_id: paczNadania,
+                paczkomat_docelowy_id: paczDoc,
+                rozmiar_id: rozmiar,
+                waga: waga
+            });
+
+            const resp = await fetch(`/przesylka/api/koszt?${params.toString()}`);
+            const data = await resp.json();
+
+            if (!resp.ok || data.error) {
+                poleKoszt.value = 'błąd wyliczania';
+                return;
+            }
+
+            poleKoszt.value = data.koszt.toFixed(2) + ' zł';
+        } catch (e) {
+            poleKoszt.value = 'błąd połączenia';
+        }
+    }
+
+    document.getElementById('paczkomat_nadania_id').addEventListener('change', obliczKoszt);
+    document.getElementById('paczkomat_docelowy_id').addEventListener('change', obliczKoszt);
+    document.getElementById('rozmiar_id').addEventListener('change', obliczKoszt);
+    document.getElementById('waga').addEventListener('input', obliczKoszt);
+</script>
+
+{% endblock %}

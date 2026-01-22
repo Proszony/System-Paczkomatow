@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Zarządzanie Miastami{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>🏙️ Zarządzanie Miastami</h1>
+        <a href="{{ url_for('admin.miasto_new') }}" class="btn btn-success btn-lg">
+            ➕ Dodaj Miasto
+        </a>
+    </div>
+
+    {% if miasta %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th style="cursor: pointer;">
+                        <a href="{{ url_for('admin.miasta', sort='id', order='desc' if sort=='id' and order=='asc' else 'asc') }}" 
+                           class="text-light text-decoration-none">
+                            ID {{ get_sort_icon('id', sort, order) }}
+                        </a>
+                    </th>
+                    <th style="cursor: pointer;">
+                        <a href="{{ url_for('admin.miasta', sort='nazwa', order='desc' if sort=='nazwa' and order=='asc' else 'asc') }}" 
+                           class="text-light text-decoration-none">
+                            Nazwa {{ get_sort_icon('nazwa', sort, order) }}
+                        </a>
+                    </th>
+                    <th>Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for miasto in miasta %}
+                <tr>
+                    <td><strong>#{{ miasto.id }}</strong></td>
+                    <td>{{ miasto.nazwa }}</td>
+                    <td>
+                        <a href="{{ url_for('admin.miasto_edit', miasto_id=miasto.id) }}" class="btn btn-sm btn-warning">
+                            ✏️ Edytuj
+                        </a>
+                        <form method="POST" action="{{ url_for('admin.miasto_delete', miasto_id=miasto.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Czy na pewno usunąć?')">
+                                🗑️ Usuń
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center py-5">
+        <p>📭 Brak miast w bazie.</p>
+        <a href="{{ url_for('admin.miasto_new') }}" class="btn btn-primary">
+            ➕ Dodaj pierwsze miasto
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    th a:hover {
+        color: #87CEEB !important;
+        text-decoration: underline !important;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Panel Administratora{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>📊 Panel Administratora</h1>
+    
+    <div class="row mt-4">
+        <div class="col-md-3 mb-4">
+	    <div class="card shadow-sm h-100">
+		<div class="card-body d-flex align-items-center justify-content-between">
+		    
+		    <!-- Lewa część: Klienci -->
+		    <div class="text-center flex-fill">
+		        <h6 class="text-muted mb-1">Klienci</h6>
+		        <p class="display-6 mb-0">{{ klienci }}</p>
+		    </div>
+
+		    <!-- Pionowa linia -->
+		    <div class="vr mx-3" style="height: 50px;"></div>
+
+		    <!-- Prawa część: Pracownicy -->
+		    <div class="text-center flex-fill">
+		        <h6 class="text-muted mb-1">Pracownicy</h6>
+		        <p class="display-6 mb-0">{{ pracownicy }}</p>
+		    </div>
+		</div>
+
+		<div class="card-footer bg-white border-0 pt-0">
+		    <a href="{{ url_for('admin.uzytkownicy') }}" class="btn btn-primary btn-sm w-100">
+		        Zarządzaj użytkownikami
+		    </a>
+		</div>
+	    </div>
+	</div>
+
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Przesyłki</h5>
+                    <p class="card-text display-4">{{ przesylki }}</p>
+                    <a href="{{ url_for('przesylka.lista') }}" class="btn btn-primary btn-sm">Zobacz</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Centra</h5>
+                    <p class="card-text display-4">{{ centra }}</p>
+                    <a href="{{ url_for('admin.centra') }}" class="btn btn-primary btn-sm">Zarządzaj</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">✅ Doręczone</h5>
+                    <p class="card-text display-5">{{ doreczone }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">💰 Suma przychodów</h5>
+                    <p class="card-text display-5">{{ suma_przesylek }} zł</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h3>Szybkie linki</h3>
+            <a href="{{ url_for('admin.miasta') }}" class="btn btn-outline-primary">Miasta</a>
+            <a href="{{ url_for('admin.centra') }}" class="btn btn-outline-primary">Centra</a>
+            <a href="{{ url_for('admin.paczkomaty') }}" class="btn btn-outline-primary">Paczkomaty</a>
+            <a href="{{ url_for('admin.uzytkownicy') }}" class="btn btn-outline-primary">Użytkownicy</a>
+	    <a href="{{ url_for('admin.nowy_kierownik') }}" class="btn btn-outline-primary">Dodaj kierownika</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

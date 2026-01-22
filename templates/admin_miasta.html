@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Miasta{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>🏙️ Zarządzanie Miastami</h1>
+        <a href="{{ url_for('admin.miasto_new') }}" class="btn btn-success">+ Dodaj Miasto</a>
+    </div>
+
+    {% if miasta %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nazwa</th>
+                    <th>Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for miasto in miasta %}
+                <tr>
+                    <td>{{ miasto.id }}</td>
+                    <td>{{ miasto.nazwa }}</td>
+                    <td>
+                        <a href="{{ url_for('admin.miasto_edit', miasto_id=miasto.id) }}" class="btn btn-sm btn-warning">Edytuj</a>
+                        <form method="POST" action="{{ url_for('admin.miasto_delete', miasto_id=miasto.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Czy na pewno usunąć?')">Usuń</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">Brak miast w bazie.</div>
+    {% endif %}
+</div>
+{% endblock %}

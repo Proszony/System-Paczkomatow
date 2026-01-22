@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Edycja Paczkomatu{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% if paczkomat and paczkomat.id %}
+        <h1>✏️ Edycja Paczkomatu</h1>
+    {% else %}
+        <h1>➕ Dodaj Nowy Paczkomat</h1>
+    {% endif %}
+    
+    {% if blad %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ blad }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <form method="POST" class="mt-4">
+        <!-- Kod paczkomatu -->
+        <div class="mb-3">
+            <label for="kod" class="form-label">Kod Paczkomatu</label>
+            <input type="text" class="form-control" id="kod" name="kod"
+                   value="{{ paczkomat.kod if paczkomat else '' }}"
+                   placeholder="ABC1234" required>
+            <small class="form-text text-muted">
+                Format: 3 wielkie litery + 4 cyfry (np. ABC1234)
+            </small>
+        </div>
+
+        <!-- Adres -->
+        <div class="mb-3">
+            <label for="adres" class="form-label">Adres</label>
+            <input type="text" class="form-control" id="adres" name="adres"
+                   value="{{ paczkomat.adres if paczkomat else '' }}" required>
+        </div>
+
+        <!-- Współrzędne geograficzne -->
+	<div class="row">
+	    <div class="col-md-6 mb-3">
+		<label for="szerokosc_geograficzna" class="form-label">Szerokość geograficzna</label>
+		<input type="text" class="form-control" id="szerokosc_geograficzna"
+		       name="szerokosc_geograficzna"
+		       value="{{ paczkomat.szerokosc_geograficzna if paczkomat else '' }}"
+		       placeholder="51.1085" required>
+	    </div>
+	    <div class="col-md-6 mb-3">
+		<label for="dlugosc_geograficzna" class="form-label">Długość geograficzna</label>
+		<input type="text" class="form-control" id="dlugosc_geograficzna"
+		       name="dlugosc_geograficzna"
+		       value="{{ paczkomat.dlugosc_geograficzna if paczkomat else '' }}"
+		       placeholder="17.0390" required>
+	    </div>
+	</div>
+
+
+        <!-- Centrum logistyczne -->
+        {% if centra %}
+        <div class="mb-3">
+            <label for="centrum_id" class="form-label">Centrum Logistyczne</label>
+            <select class="form-select" id="centrum_id" name="centrum_id" required>
+                <option value="">-- Wybierz centrum --</option>
+                {% for centrum in centra %}
+                <option value="{{ centrum.id }}"
+                        {% if paczkomat and centrum.id == paczkomat.centrum_id %}selected{% endif %}>
+                    {{ centrum.nazwa }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
+        <!-- Liczby skrytek S/M/L -->
+	<div class="row">
+	    <div class="col-md-4 mb-3">
+		<label for="liczba_skrytek_s" class="form-label">Liczba skrytek S</label>
+		<input type="number" min="0" class="form-control" id="liczba_skrytek_s"
+		       name="liczba_skrytek_s"
+		       value="{{ paczkomat.liczba_skrytek_s if paczkomat else 10 }}">
+	    </div>
+	    <div class="col-md-4 mb-3">
+		<label for="liczba_skrytek_m" class="form-label">Liczba skrytek M</label>
+		<input type="number" min="0" class="form-control" id="liczba_skrytek_m"
+		       name="liczba_skrytek_m"
+		       value="{{ paczkomat.liczba_skrytek_m if paczkomat else 8 }}">
+	    </div>
+	    <div class="col-md-4 mb-3">
+		<label for="liczba_skrytek_l" class="form-label">Liczba skrytek L</label>
+		<input type="number" min="0" class="form-control" id="liczba_skrytek_l"
+		       name="liczba_skrytek_l"
+		       value="{{ paczkomat.liczba_skrytek_l if paczkomat else 5 }}">
+	    </div>
+	</div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Zapisz</button>
+            <a href="{{ url_for('admin.paczkomaty') }}" class="btn btn-secondary">Anuluj</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

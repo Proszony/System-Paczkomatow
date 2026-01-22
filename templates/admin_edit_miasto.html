@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Edycja Miasta{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% if miasto and miasto.id %}
+        <h1>✏️ Edycja Miasta</h1>
+    {% else %}
+        <h1>➕ Dodaj Nowe Miasto</h1>
+    {% endif %}
+    
+    {% if blad %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ blad }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <form method="POST" class="mt-4">
+        <div class="mb-3">
+            <label for="nazwa" class="form-label">Nazwa Miasta *</label>
+            <input type="text" class="form-control" id="nazwa" name="nazwa" 
+                   value="{{ miasto.nazwa or '' }}" required>
+            <small class="form-text text-muted">Minimum 2 znaki</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="kod" class="form-label">Kod Miasta *</label>
+            <input type="text" class="form-control" id="kod" name="kod" 
+                   value="{{ miasto.kod or '' }}" maxlength="3" required>
+            <small class="form-text text-muted">Dokładnie 3 znaki (np. WAW, KRA, WRO)</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="szerokosc" class="form-label">Szerokość Geograficzna *</label>
+            <input type="number" class="form-control" id="szerokosc" name="szerokosc_geograficzna" 
+                   value="{{ miasto.szerokosc_geograficzna or '' }}" 
+                   step="0.00000001" min="-90" max="90" required>
+            <small class="form-text text-muted">np. 52.22988605</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="dlugosc" class="form-label">Długość Geograficzna *</label>
+            <input type="number" class="form-control" id="dlugosc" name="dlugosc_geograficzna" 
+                   value="{{ miasto.dlugosc_geograficzna or '' }}" 
+                   step="0.00000001" min="-180" max="180" required>
+            <small class="form-text text-muted">np. 21.01222196</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="liczba_mieszkancow" class="form-label">Liczba Mieszkańców</label>
+            <input type="number" class="form-control" id="liczba_mieszkancow" name="liczba_mieszkancow" 
+                   value="{{ miasto.liczba_mieszkancow or '' }}" min="0">
+            <small class="form-text text-muted">Opcjonalnie</small>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Zapisz</button>
+            <a href="{{ url_for('admin.miasta') }}" class="btn btn-secondary">Anuluj</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

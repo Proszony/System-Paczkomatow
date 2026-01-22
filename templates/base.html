@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CBD - Parcel Box Manager{% endblock %}</title>
+    
+    <link rel="icon"
+          type="image/x-icon"
+          href="{{ url_for('static', filename='favicon.svg') }}">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 60px;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            border-radius: 5px;
+            padding: 8px 16px;
+        }
+        
+        .table {
+            background-color: white;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .alert {
+            border-radius: 5px;
+        }
+        
+        footer {
+            background-color: #f8f9fa;
+            padding: 20px 0;
+            margin-top: 40px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('index.index') }}">📦 Centralne Biuro Dystrybucji</a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if session.user_id %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                👤 {{ session.user_name }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                {% if session.user_type == 'Pracownik' and session.user_role == 'Administrator' %}
+                                    <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">Panel Admina</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('mapa.mapa_view') }}">Mapa paczkomatów</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                {% elif session.user_type == 'Pracownik' and session.user_role == 'Kierownik' %}
+                                    <li><a class="dropdown-item" href="{{ url_for('kierownik.dashboard') }}">Panel Kierownika</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('mapa.mapa_view') }}">Mapa paczkomatów</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                {% elif session.user_type == 'Klient' %}
+                                    <li><a class="dropdown-item" href="{{ url_for('klient.dashboard') }}">Mój Panel</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('przesylka.nadaj') }}">Nowa Przesyłka</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('mapa.mapa_view') }}">Mapa paczkomatów</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Wyloguj się</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.login') }}">Logowanie</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.register') }}">Rejestracja</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="py-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>&copy; 2026 CBD - Parcel Box Manager. Wszelkie prawa zastrzeżone.</p>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

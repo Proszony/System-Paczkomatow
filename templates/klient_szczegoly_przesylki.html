@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Szczegóły przesyłki {{ przesylka.numer_przesylki }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="container mt-4">
+    <div class="d-flex align-items-center mb-3">
+        <a href="{{ url_for('klient.dashboard') }}" class="btn btn-outline-secondary btn-sm">
+            ← Wróć do listy przesyłek
+        </a>
+
+        <div class="ms-auto d-flex gap-2">
+            {% if przesylka.status == 'Utworzona' and przesylka.nadawca_id == session['user_id'] %}
+                <form method="POST" action="{{ url_for('przesylka.oznacz_jako_nadana', przesylka_id=przesylka.id) }}">
+                    <button type="submit" class="btn btn-success btn-sm">
+                        📤 Nadaj
+                    </button>
+                </form>
+                <form method="POST" action="{{ url_for('przesylka.anuluj', przesylka_id=przesylka.id) }}">
+                    <button type="submit" class="btn btn-outline-danger btn-sm"
+                            onclick="return confirm('Na pewno anulować tę przesyłkę?');">
+                        ❌ Anuluj przesyłkę
+                    </button>
+                </form>
+            {% elif przesylka.status == 'Doreczona' and przesylka.odbiorca_id == session['user_id'] %}
+                <form method="POST" action="{{ url_for('przesylka.odbierz', przesylka_id=przesylka.id) }}">
+                    <button type="submit" class="btn btn-success btn-sm">
+                        ✅ Odbierz przesyłkę
+                    </button>
+                </form>
+            {% elif przesylka.status == 'Odebrana' and przesylka.odbiorca_id == session['user_id'] and przesylka.flaga_szkodzona == false %}
+	        <form method="POST" action="{{ url_for('przesylka.zglos_uszkodzenie',
+		                                   przesylka_id=przesylka.id) }}">
+		    <button type="submit" class="btn btn-outline-danger btn-sm"
+		        onclick="return confirm('Zgłosić uszkodzenie przesyłki?');">
+		        ⚠️ Zgłoś uszkodzenie
+		    </button>
+	       </form>
+            {% endif %}
+            {% if przesylka.flaga_uszkodzona and przesylka.odbiorca_id == session['user_id'] %}
+		    <button class="btn btn-outline-danger btn-sm ms-2"
+		            data-bs-toggle="modal"
+		            data-bs-target="#modalUwagiUszkodzenie">
+		        ✏️ Dodaj / edytuj uwagi
+		    </button>
+	    {% endif %}
+        </div>
+    </div>
+
+
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">📦 Szczegóły przesyłki</h4>
+            <span class="badge bg-light text-dark">
+                Numer: <strong>{{ przesylka.numer_przesylki }}</strong>
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Nadawca -->
+                <div class="col-md-6 mb-3">
+                    <h5>👤 Nadawca</h5>
+                    <p class="mb-1"><strong>{{ przesylka.nadawca_nazwa }}</strong></p>
+                    <p class="mb-1">
+                        Email: <code>{{ przesylka.nadawca_email }}</code><br>
+                        Tel: {{ przesylka.nadawca_telefon or '-' }}
+                    </p>
+                    <p class="mb-0">
+                        Adres:<br>
+                        <small>{{ przesylka.nadawca_adres }}</small>
+                    </p>
+                </div>
+
+                <!-- Odbiorca -->
+                <div class="col-md-6 mb-3">
+                    <h5>📬 Odbiorca</h5>
+                    <p class="mb-1"><strong>{{ przesylka.odbiorca_nazwa }}</strong></p>
+                    <p class="mb-1">
+                        Email: <code>{{ przesylka.odbiorca_email }}</code><br>
+                        Tel: {{ przesylka.odbiorca_telefon or '-' }}
+                    </p>
+                    <p class="mb-0">
+                        Adres:<br>
+                        <small>{{ przesylka.odbiorca_adres }}</small>
+                    </p>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row">
+                <!-- Dane paczki -->
+                <div class="col-md-6 mb-3">
+                    <h5>📦 Parametry przesyłki</h5>
+                    <p class="mb-1">
+                        Rozmiar: <strong>{{ przesylka.rozmiar }}</strong>
+                    </p>
+                    <p class="mb-1">
+                        Wymiary (cm): 
+                        <strong>{{ przesylka.wymiary_dlugosc }} x {{ przesylka.wymiary_szerokosc }} x {{ przesylka.wymiary_wysokosc }}</strong>
+                    </p>
+                    <p class="mb-1">
+                        Waga: <strong>{{ "%.2f"|format(przesylka.waga_nadania) }} kg</strong>
+                    </p>
+                    <p class="mb-0">
+                        Koszt: <strong>{{ "%.2f"|format(przesylka.koszt) }} zł</strong>
+                    </p>
+                </div>
+
+                <!-- Status + daty -->
+                <div class="col-md-6 mb-3">
+                    <h5>📊 Status i terminy</h5>
+                    <p class="mb-2">
+                        Status:
+                        {% if przesylka.status == 'Doreczona' %}
+                            <span class="badge bg-success">✅ {{ przesylka.status }}</span>
+                        {% elif przesylka.status == 'W trasie' %}
+                            <span class="badge bg-info">📦 {{ przesylka.status }}</span>
+                        {% elif przesylka.status == 'Oczekuje na odbiór' %}
+                            <span class="badge bg-warning text-dark">⏳ {{ przesylka.status }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ przesylka.status }}</span>
+                        {% endif %}
+                    </p>
+                    <p class="mb-1">
+                        Data nadania:
+                        <strong>
+                            {{ przesylka.data_nadania.strftime("%Y-%m-%d %H:%M") if przesylka.data_nadania else '-' }}
+                        </strong>
+                    </p>
+                    <p class="mb-1">
+                        Planowana dostawa:
+                        <strong>
+                            {{ przesylka.data_planowanej_dostawy.strftime("%Y-%m-%d %H:%M") if przesylka.data_planowanej_dostawy else '-' }}
+                        </strong>
+                    </p>
+                    <p class="mb-0">
+                        Data dostarczenia:
+                        <strong>
+                            {{ przesylka.data_dostarczenia.strftime("%Y-%m-%d %H:%M") if przesylka.data_dostarczenia else '-' }}
+                        </strong>
+                    </p>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Paczkomaty -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <h5>🏣 Paczkomat nadania</h5>
+                    <p class="mb-0">
+                        {{ przesylka.paczkomat_nadania or 'Brak danych' }}
+                    </p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <h5>🏤 Paczkomat docelowy</h5>
+                    <p class="mb-0">
+                        {{ przesylka.paczkomat_docelowy or 'Brak danych' }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Uwagi -->
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <h5>📝 Uwagi</h5>
+                    {% if przesylka.uwagi %}
+                        <p class="mb-1">{{ przesylka.uwagi }}</p>
+                    {% else %}
+                        <p class="text-muted mb-1">Brak dodatkowych uwag.</p>
+                    {% endif %}
+
+                    {% if przesylka.flaga_uszkodzona %}
+                        <span class="badge bg-danger">⚠️ Zgłoszono uszkodzenie przesyłki</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modalUwagiUszkodzenie" tabindex="-1"
+     aria-labelledby="modalUwagiUszkodzenieLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST"
+            action="{{ url_for('przesylka.uwagi_uszkodzenie',
+                               przesylka_id=przesylka.id) }}">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalUwagiUszkodzenieLabel">
+            Uwagi do uszkodzenia przesyłki
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"
+                  aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="uwagiInput" class="form-label">Treść uwag</label>
+            <textarea class="form-control" id="uwagiInput" name="uwagi"
+                      rows="4" maxlength="255"
+                      placeholder="Opisz uszkodzenie...">{{ przesylka.uwagi or '' }}</textarea>
+            <small class="text-muted">Maksymalnie 255 znaków.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary"
+                  data-bs-dismiss="modal">Anuluj</button>
+          <button type="submit" class="btn btn-primary">Zapisz</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<style>
+    .card h5 {
+        font-size: 1.05rem;
+        margin-bottom: 0.5rem;
+    }
+    code {
+        background-color: #f5f5f5;
+        padding: 0.15rem 0.3rem;
+        border-radius: 3px;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+

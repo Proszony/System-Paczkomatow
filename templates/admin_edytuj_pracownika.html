@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Edytuj Pracownika{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1>✏️ Edytuj pracownika</h1>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, msg in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' }} alert-dismissible fade show mt-3" role="alert">
+                            {{ msg }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="card mt-4">
+                <div class="card-body">
+                    <form method="POST" onsubmit="return confirmZmianaRoli();">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Imię *</label>
+                                <input type="text" class="form-control" name="imie"
+                                       value="{{ pracownik.imie }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Nazwisko *</label>
+                                <input type="text" class="form-control" name="nazwisko"
+                                       value="{{ pracownik.nazwisko }}" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="form-control" name="email"
+                                   value="{{ pracownik.email }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Telefon *</label>
+                            <input type="tel" class="form-control" name="telefon"
+                                   value="{{ pracownik.telefon }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Adres</label>
+                            <textarea class="form-control" name="adres" rows="2">{{ pracownik.adres or '' }}</textarea>
+                        </div>
+
+			<div class="mb-3">
+			    <label class="form-label">Nowe hasło (opcjonalnie)</label>
+			    <input type="password" class="form-control" name="nowe_haslo">
+			    <small class="form-text text-muted">
+				Zostaw puste, jeśli nie chcesz zmieniać hasła.
+			    </small>
+			</div>
+			<div class="mb-3">
+			    <label class="form-label">Powtórz nowe hasło</label>
+			    <input type="password" class="form-control" name="powtorz_haslo">
+			</div>
+
+
+                        <div class="mb-3">
+                            <label class="form-label">Rola *</label>
+                            <select name="rola_id" id="rola_id" class="form-select" required>
+                                {% for r in role %}
+                                    <option value="{{ r.id }}"
+                                        {% if r.id == pracownik.rola_id %}selected{% endif %}>
+                                        {{ r.rola }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">
+                                Zmiana roli wpływa na uprawnienia pracownika.
+                            </small>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('admin.uzytkownicy') }}" class="btn btn-secondary">Anuluj</a>
+                            <button type="submit" class="btn btn-success">💾 Zapisz zmiany</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmZmianaRoli() {
+    const select = document.getElementById('rola_id');
+    const selectedText = select.options[select.selectedIndex].text;
+    return confirm("Na pewno zmienić rolę pracownika na: " + selectedText + " ?");
+}
+</script>
+{% endblock %}

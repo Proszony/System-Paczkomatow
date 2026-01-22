@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}Mapa paczkomatów{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Mapa centrów i paczkomatów</h3>
+
+  <div class="row mt-3">
+    <div class="col-md-3">
+      <div class="position-relative mb-3">
+        <form id="search-form" class="d-flex flex-column">
+          <input type="text"
+                 id="search-input"
+                 class="form-control mb-2"
+                 placeholder="Kod paczkomatu, np. WRO1234"
+                 maxlength="7"
+                 autocomplete="off">
+          <button class="btn btn-primary w-100" type="submit">Szukaj</button>
+        </form>
+
+        <div id="search-suggestions"
+             class="list-group position-absolute w-100"
+             style="z-index: 1000; max-height: 200px; overflow-y: auto; display: none;">
+        </div>
+      </div>
+
+      <small class="text-muted">
+        Kod: 3 litery miasta + 4 cyfry (np. WRO1234).
+      </small>
+    </div>
+
+
+    <div class="col-md-9">
+      <div id="map" style="height: 600px; border-radius: 8px;"></div>
+    </div>
+  </div>
+</div>
+
+
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  var map = L.map('map').setView([51.11, 17.03], 6);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
+  var centraLayer = L.layerGroup().addTo(map);
+  var paczkomatyLayer = L.layerGroup().addTo(map);
+
+  var paczkomatyByKod = {};
+  var wszystkieKody = [];
+
+  // Ikona dla paczkomatu
+  var paczkomatIcon = L.icon({
+    iconUrl: "{{ url_for('static', filename='paczkomat-marker-2.png') }}",
+    iconSize:     [25, 41],
+    iconAnchor:   [12, 41],
+    popupAnchor:  [1, -34],
+    shadowUrl:    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    shadowSize:   [41, 41],
+    shadowAnchor: [12, 41]
+  });
+
+  // Ikona dla centrum
+  var centrumIcon = L.icon({
+    iconUrl: "{{ url_for('static', filename='centrum-marker.png') }}",
+    iconSize:     [25, 41],
+    iconAnchor:   [12, 41],
+    popupAnchor:  [1, -34],
+    shadowUrl:    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    shadowSize:   [41, 41],
+    shadowAnchor: [12, 41]
+  });
+
+  fetch("{{ url_for('mapa.api_punkty') }}")
+    .then(r => r.json())
+    .then(data => {
+      // CENTRA
+      data.centra.forEach(c => {
+        L.marker([c.lat, c.lon], { title: c.nazwa, icon: centrumIcon })
+          .bindPopup("Centrum: " + c.nazwa)
+          .addTo(centraLayer);
+      });
+
+      // PACZKOMATY
+      data.paczkomaty.forEach(p => {
+        var marker = L.marker([p.lat, p.lon], { icon: paczkomatIcon })
+          .bindPopup("Paczkomat: " + p.nazwa)
+          .addTo(paczkomatyLayer);
+
+        paczkomatyByKod[p.nazwa] = marker;
+        wszystkieKody.push(p.nazwa);
+      });
+
+      // domyślnie tylko centra
+      paczkomatyLayer.removeFrom(map);
+
+      function updateLayers() {
+        if (map.getZoom() >= 11) {
+          if (!map.hasLayer(paczkomatyLayer)) map.addLayer(paczkomatyLayer);
+        } else {
+          if (map.hasLayer(paczkomatyLayer)) map.removeLayer(paczkomatyLayer);
+        }
+      }
+
+      map.on('zoomend', updateLayers);
+      updateLayers();
+
+      // ---- wyszukiwanie + autocomplete ----
+      var searchForm = document.getElementById("search-form");
+      var searchInput = document.getElementById("search-input");
+      var suggestionsBox = document.getElementById("search-suggestions");
+
+      function focusMarkerByCode(kod) {
+        var marker = paczkomatyByKod[kod];
+        if (!marker) return;
+
+        if (!map.hasLayer(paczkomatyLayer)) {
+          map.addLayer(paczkomatyLayer);
+        }
+
+        var latlng = marker.getLatLng();
+        map.setView(latlng, 15);
+        marker.openPopup();
+      }
+
+      if (searchForm && searchInput && suggestionsBox) {
+
+        // podpowiedzi podczas pisania
+        searchInput.addEventListener("input", function () {
+          var val = (searchInput.value || "").toUpperCase().trim();
+          suggestionsBox.innerHTML = "";
+
+          if (!val) {
+            suggestionsBox.style.display = "none";
+            return;
+          }
+
+          var matches = wszystkieKody
+            .filter(function(k) { return k.startsWith(val); })
+            .slice(0, 10);
+
+          if (matches.length === 0) {
+            suggestionsBox.style.display = "none";
+            return;
+          }
+
+          matches.forEach(function (kod) {
+            var item = document.createElement("button");
+            item.type = "button";
+            item.className = "list-group-item list-group-item-action";
+            item.textContent = kod;
+            item.addEventListener("click", function () {
+              searchInput.value = kod;
+              suggestionsBox.style.display = "none";
+              focusMarkerByCode(kod);
+            });
+            suggestionsBox.appendChild(item);
+          });
+
+          suggestionsBox.style.display = "block";
+        });
+
+        // ukryj dropdown przy kliknięciu poza nim
+        document.addEventListener("click", function (e) {
+          if (!suggestionsBox.contains(e.target) &&
+              e.target !== searchInput) {
+            suggestionsBox.style.display = "none";
+          }
+        });
+
+        // submit (Enter / przycisk "Szukaj")
+        searchForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var kod = (searchInput.value || "").trim().toUpperCase();
+          var re = /^[A-Z]{3}[0-9]{4}$/;
+
+          if (!re.test(kod)) {
+            alert("Nieprawidłowy format kodu. Użyj 3 liter + 4 cyfr, np. WRO1234.");
+            return;
+          }
+
+          if (!paczkomatyByKod[kod]) {
+            alert("Nie znaleziono paczkomatu o takim kodzie.");
+            return;
+          }
+
+          suggestionsBox.style.display = "none";
+          focusMarkerByCode(kod);
+        });
+      }
+    });
+});
+</script>
+
+{% endblock %}

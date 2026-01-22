@@ -1,0 +1,40 @@
+# --- Python cache / artefakty ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.log
+
+# --- Środowiska wirtualne ---
+venv/
+.venv/
+env/
+ENV/
+
+# --- Pliki konfiguracyjne / sekrety ---
+.env
+.env.*
+*.sqlite3
+
+# --- Build / dystrybucja ---
+build/
+dist/
+*.egg-info/
+
+# --- Narzędzia / testy ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# --- IDE / edytory ---
+.idea/
+.vscode/
+*.iml
+
+# --- Systemowe ---
+.DS_Store
+Thumbs.db
+
+# --- Lokalne skrypty ---
+cbdctl

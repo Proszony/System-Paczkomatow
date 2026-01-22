@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Centra Logistyczne{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>📦 Zarządzanie Centrami</h1>
+        <a href="{{ url_for('admin.centrum_new') }}" class="btn btn-success">+ Dodaj Centrum</a>
+    </div>
+
+    {% if centra %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nazwa</th>
+                    <th>Adres</th>
+                    <th>Miasto</th>
+                    <th>Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for centrum in centra %}
+                <tr>
+                    <td>{{ centrum.id }}</td>
+                    <td>{{ centrum.nazwa }}</td>
+                    <td>{{ centrum.adres }}</td>
+                    <td>{{ centrum.miasto }}</td>
+                    <td>
+                        <a href="{{ url_for('admin.centrum_edit', centrum_id=centrum.id) }}" class="btn btn-sm btn-warning">Edytuj</a>
+                        <form method="POST" action="{{ url_for('admin.centrum_delete', centrum_id=centrum.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Czy na pewno usunąć?')">Usuń</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">Brak centrów w bazie.</div>
+    {% endif %}
+</div>
+{% endblock %}
