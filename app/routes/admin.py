@@ -7,10 +7,9 @@ from app.decorators import login_required, role_required
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 
-# ========== HELPER - BEZPIECZNE SORTOWANIE ==========
 def get_sort_params(sort_default='id', order_default='asc', allowed_sorts=None):
     """
-    Bezpiecznie pobiera parametry sortowania z URL'a.
+    Pobiera parametry sortowania z URL'a.
     
     Args:
         sort_default: domyślna kolumna do sortowania
@@ -26,7 +25,6 @@ def get_sort_params(sort_default='id', order_default='asc', allowed_sorts=None):
     sort = request.args.get('sort', sort_default).lower().strip()
     order = request.args.get('order', order_default).lower().strip()
     
-    # Bezpieczeństwo - sprawdzenie whitelist
     if sort not in allowed_sorts:
         sort = sort_default
     if order not in ['asc', 'desc']:
@@ -39,12 +37,8 @@ def get_sort_icon(sort_col, current_sort, current_order):
     """Zwraca ikonę sortowania"""
     if sort_col == current_sort:
         return '⬆️' if current_order == 'asc' else '⬇️'
-    return '⬌'  # Ikona neutral
+    return '⬌'
 
-
-# ============================================
-# DASHBOARD
-# ============================================
 
 @admin_bp.route("/")
 @admin_bp.route("/dashboard")
@@ -57,7 +51,6 @@ def dashboard():
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
-        # Statystyki
         cur.execute("SELECT COUNT(*) as cnt FROM klient")
         klienci = cur.fetchone()['cnt']
         
@@ -88,9 +81,6 @@ def dashboard():
         cur.close()
         conn.close()
 
-# ==========
-# Kierownicy
-# ==========
 
 @admin_bp.route("/kierownik/nowy", methods=["GET", "POST"])
 @login_required
@@ -103,7 +93,6 @@ def nowy_kierownik():
     
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Pobierz dostępne centra logistyczne
     try:
         cur.execute("""
             SELECT c.id, c.nazwa
@@ -126,7 +115,6 @@ def nowy_kierownik():
         powtorz_haslo = request.form.get("powtorz_haslo")
         centrum_id = request.form.get("centrum_id")
 
-        # Walidacja
         if not (imie and nazwisko and email and haslo and telefon and centrum_id):
             flash("Imię, nazwisko, email, hasło, telefon i centrum są wymagane.", "danger")
             return render_template("admin_nowy_kierownik.html", centra=centra)
@@ -139,7 +127,6 @@ def nowy_kierownik():
             flash("Hasło musi mieć co najmniej 6 znaków.", "danger")
             return render_template("admin_nowy_kierownik.html", centra=centra)
 
-        # Sprawdź email
         cur.execute("SELECT id FROM pracownik WHERE email = %s", (email,))
         if cur.fetchone():
             flash("Email już istnieje w bazie pracowników.", "danger")
@@ -151,7 +138,6 @@ def nowy_kierownik():
             return render_template("admin_nowy_kierownik.html", centra=centra)
 
         try:
-            # ID roli "Kierownik"
             cur.execute("SELECT id FROM rola_pracownika WHERE rola = 'Kierownik'")
             rola_result = cur.fetchone()
             if not rola_result:
@@ -159,7 +145,6 @@ def nowy_kierownik():
                 return render_template("admin_nowy_kierownik.html", centra=centra)
             rola_id = rola_result['id']
 
-            # ID statusu "Aktywny"
             cur.execute("SELECT id FROM status_pracownika WHERE status = 'Aktywny'")
             status_result = cur.fetchone()
             if not status_result:
@@ -167,10 +152,8 @@ def nowy_kierownik():
                 return render_template("admin_nowy_kierownik.html", centra=centra)
             status_id = status_result['id']
 
-            # Haszuj hasło
             hash_hasla = generate_password_hash(haslo)
 
-            # Wstaw pracownika (kierownika)
             cur.execute("""
                 INSERT INTO pracownik 
                 (imie, nazwisko, email, telefon, adres, haslo_hash, 
@@ -182,7 +165,6 @@ def nowy_kierownik():
             
             pracownik_id = cur.fetchone()['id']
 
-            # Wstaw do kierownik_centrum
             cur.execute("""
                 INSERT INTO kierownik_centrum 
                 (pracownik_id, centrum_id, data_przypisania)
@@ -204,17 +186,12 @@ def nowy_kierownik():
     return render_template("admin_nowy_kierownik.html", centra=centra)
 
 
-# ============================================
-# ZARZĄDZANIE UŻYTKOWNIKAMI
-# ============================================
-
 @admin_bp.route("/uzytkownicy")
 def uzytkownicy():
     """Lista wszystkich użytkowników (klienci + pracownicy)"""
     sort = request.args.get('sort', 'id').lower()
     order = request.args.get('order', 'asc').lower()
-    
-    # Whitelist kolumn
+
     allowed_sorts_klienci = ['id', 'imie', 'nazwisko', 'email']
     if sort not in allowed_sorts_klienci:
         sort = 'id'
@@ -238,7 +215,6 @@ def uzytkownicy():
         """)
         klienci = cur.fetchall()
 
-        # Pracownicy
         cur.execute(f"""
             SELECT p.id, p.imie, p.nazwisko, p.email, '-' as telefon,
                    rp.rola AS status_uzytkownika, 'Pracownik' as typ,
@@ -261,7 +237,6 @@ def uzytkownicy():
         cur.close()
         conn.close()
 
-# EDYCJE
 
 @admin_bp.route("/klient/<int:klient_id>/edytuj", methods=["GET", "POST"])
 @login_required
@@ -273,7 +248,6 @@ def edytuj_klienta(klient_id):
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
-        # Pobierz klienta
         cur.execute("""
             SELECT k.id, k.imie, k.nazwisko, k.email, k.telefon,
                    k.adres, k.miasto, k.status_id,
@@ -287,7 +261,6 @@ def edytuj_klienta(klient_id):
             flash("Klient nie znaleziony.", "danger")
             return redirect(url_for("admin.uzytkownicy"))
 
-        # ID statusów Aktywny / Nieaktywny (do przełącznika)
         cur.execute("""
             SELECT id, status
             FROM status_uzytkownika
@@ -311,7 +284,6 @@ def edytuj_klienta(klient_id):
                                        klient=klient,
                                        statusy=statusy)
 
-            # Unikalność emaila
             cur.execute("""
                 SELECT id FROM klient
                 WHERE email = %s AND id != %s
@@ -322,7 +294,6 @@ def edytuj_klienta(klient_id):
                                        klient=klient,
                                        statusy=statusy)
 
-            # Unikalność telefonu
             cur.execute("""
                 SELECT id FROM klient
                 WHERE telefon = %s AND id != %s
@@ -333,11 +304,9 @@ def edytuj_klienta(klient_id):
                                        klient=klient,
                                        statusy=statusy)
 
-            # Wylicz nowy status_id
             nowy_status_id = statusy['Aktywny'] if aktywny else statusy['Nieaktywny']
 
             try:
-                # Aktualizacja bez hasła
                 cur.execute("""
                     UPDATE klient
                     SET imie = %s,
@@ -351,7 +320,6 @@ def edytuj_klienta(klient_id):
                 """, (imie, nazwisko, email, telefon, adres, miasto,
                       nowy_status_id, klient_id))
 
-                # Opcjonalnie aktualizacja hasła (hash w bazie przez pgcrypto)
                 if nowe_haslo:
                     cur.execute("""
                         UPDATE klient
@@ -377,6 +345,7 @@ def edytuj_klienta(klient_id):
         cur.close()
         conn.close()
 
+
 @admin_bp.route("/pracownik/<int:pracownik_id>/edytuj", methods=["GET", "POST"])
 @login_required
 @role_required('Administrator')
@@ -388,7 +357,6 @@ def edytuj_pracownika(pracownik_id):
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
-        # Pobierz pracownika (z rola_id)
         cur.execute("""
             SELECT
                 p.id, p.imie, p.nazwisko, p.email, p.telefon, p.adres,
@@ -404,7 +372,6 @@ def edytuj_pracownika(pracownik_id):
             flash("Pracownik nie znaleziony.", "danger")
             return redirect(url_for("admin.uzytkownicy"))
 
-        # Lista ról do selecta
         cur.execute("SELECT id, rola FROM rola_pracownika WHERE id <> 1 ORDER BY id")
         role = cur.fetchall()
 
@@ -424,7 +391,6 @@ def edytuj_pracownika(pracownik_id):
                                        pracownik=pracownik,
                                        role=role)
 
-            # Walidacja hasła (jeśli podano)
             if nowe_haslo:
                 if len(nowe_haslo) < 6:
                     flash("Nowe hasło musi mieć co najmniej 6 znaków.", "danger")
@@ -437,7 +403,6 @@ def edytuj_pracownika(pracownik_id):
                                            pracownik=pracownik,
                                            role=role)
 
-            # Sprawdź czy email nie istnieje u innego pracownika
             cur.execute("""
                 SELECT id FROM pracownik
                 WHERE email = %s AND id != %s
@@ -448,7 +413,6 @@ def edytuj_pracownika(pracownik_id):
                                        pracownik=pracownik,
                                        role=role)
 
-            # Sprawdź czy telefon nie istnieje u innego pracownika
             cur.execute("""
                 SELECT id FROM pracownik
                 WHERE telefon = %s AND id != %s
@@ -460,7 +424,6 @@ def edytuj_pracownika(pracownik_id):
                                        role=role)
 
             try:
-                # Aktualizacja danych pracownika
                 cur.execute("""
                     UPDATE pracownik
                     SET imie = %s,
@@ -473,7 +436,6 @@ def edytuj_pracownika(pracownik_id):
                 """, (imie, nazwisko, email, telefon, adres,
                       int(rola_id), pracownik_id))
 
-                # Opcjonalnie aktualizacja hasła (hash w bazie przez pgcrypto)
                 if nowe_haslo:
                     cur.execute("""
                         UPDATE pracownik
@@ -501,11 +463,6 @@ def edytuj_pracownika(pracownik_id):
         conn.close()
 
 
-
-# ============================================
-# MIASTA – CRUD z SORTOWANIEM
-# ============================================
-
 @admin_bp.route("/miasta")
 def miasta():
     """Lista wszystkich miast"""
@@ -518,7 +475,6 @@ def miasta():
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
-        # ✅ Pobierz wszystkie pola miasta
         cur.execute(f"""
             SELECT id, nazwa, kod, szerokosc_geograficzna, dlugosc_geograficzna, liczba_mieszkancow 
             FROM miasto 
@@ -537,7 +493,6 @@ def miasta():
         conn.close()
 
 
-
 @admin_bp.route("/miasto/new", methods=["GET", "POST"])
 def miasto_new():
     """Dodaj nowe miasto"""
@@ -548,7 +503,6 @@ def miasto_new():
         dlugosc_geograficzna = request.form.get("dlugosc_geograficzna", "").strip()
         liczba_mieszkancow = request.form.get("liczba_mieszkancow", "").strip()
         
-        # Walidacja
         is_valid, err = validate_nazwa_miasta(nazwa)
         if not is_valid:
             return render_template("admin_edit_miasto.html", 
@@ -570,7 +524,6 @@ def miasto_new():
                                    blad="Nieprawidłowe współrzędne geograficzne",
                                    miasto=None)
         
-        # Konwersja liczby mieszkańców
         liczba_mieszkancow_int = None
         if liczba_mieszkancow:
             try:
@@ -587,7 +540,6 @@ def miasto_new():
         cur = conn.cursor()
         
         try:
-            # Sprawdzenie unikalności
             cur.execute("SELECT id FROM miasto WHERE nazwa=%s OR kod=%s", (nazwa, kod))
             if cur.fetchone():
                 return render_template("admin_edit_miasto.html",
@@ -629,7 +581,6 @@ def miasto_edit(miasto_id):
             dlugosc_geograficzna = request.form.get("dlugosc_geograficzna", "").strip()
             liczba_mieszkancow = request.form.get("liczba_mieszkancow", "").strip()
             
-            # Walidacja
             is_valid, err = validate_nazwa_miasta(nazwa)
             if not is_valid:
                 cur.execute("SELECT id, nazwa, kod, szerokosc_geograficzna, dlugosc_geograficzna, liczba_mieszkancow FROM miasto WHERE id=%s", (miasto_id,))
@@ -657,7 +608,6 @@ def miasto_edit(miasto_id):
                                        blad="Nieprawidłowe współrzędne geograficzne",
                                        miasto=miasto)
             
-            # Konwersja liczby mieszkańców
             liczba_mieszkancow_int = None
             if liczba_mieszkancow:
                 try:
@@ -669,7 +619,6 @@ def miasto_edit(miasto_id):
                                            blad="Liczba mieszkańców musi być liczbą",
                                            miasto=miasto)
             
-            # Sprawdzenie unikalności (wyłączając to miasto)
             cur.execute("""
                 SELECT id FROM miasto WHERE (nazwa=%s OR kod=%s) AND id <> %s
             """, (nazwa, kod, miasto_id))
@@ -688,7 +637,6 @@ def miasto_edit(miasto_id):
             conn.commit()
             return redirect(url_for("admin.miasta"))
         
-        # GET – wczytaj dane
         cur.execute("""
             SELECT id, nazwa, kod, szerokosc_geograficzna, dlugosc_geograficzna, liczba_mieszkancow 
             FROM miasto WHERE id=%s
@@ -712,7 +660,6 @@ def miasto_delete(miasto_id):
     cur = conn.cursor()
     
     try:
-        # Sprawdzenie czy miasto jest używane w centrach
         cur.execute("""
             SELECT COUNT(*) as cnt FROM centrum_logistyczne WHERE miasto_id=%s
         """, (miasto_id,))
@@ -722,7 +669,6 @@ def miasto_delete(miasto_id):
             return render_template("admin_miasta.html",
                                    blad="Nie można usunąć miasta - jest używane w centrach logistycznych"), 400
         
-        # Usunięcie miasta
         cur.execute("DELETE FROM miasto WHERE id=%s", (miasto_id,))
         conn.commit()
         
@@ -736,10 +682,6 @@ def miasto_delete(miasto_id):
         cur.close()
         conn.close()
 
-
-# ============================================
-# CENTRA LOGISTYCZNE – CRUD z SORTOWANIEM
-# ============================================
 
 @admin_bp.route("/centra")
 def centra():
@@ -787,7 +729,6 @@ def centrum_new():
         dlugosc_geograficzna = request.form.get("dlugosc_geograficzna", "").strip()
         pojemnosc = request.form.get("pojemnosc", "").strip()
         
-        # Walidacja - wszystkie pola wymagane
         if not all([nazwa, adres, miasto_id, szerokosc_geograficzna, dlugosc_geograficzna, pojemnosc]):
             cur = conn.cursor(cursor_factory=RealDictCursor)
             try:
@@ -800,19 +741,16 @@ def centrum_new():
                                    miasta=miasta,
                                    centrum=None)
         
-        # Konwersja typów
         try:
             miasto_id = int(miasto_id)
             pojemnosc_int = int(pojemnosc)
             
-            # ✅ ZAMIANA PRZECINKA NA KROPKĘ
             szerokosc_text = szerokosc_geograficzna.replace(',', '.')
             dlugosc_text = dlugosc_geograficzna.replace(',', '.')
             
             szerokosc = float(szerokosc_text)
             dlugosc = float(dlugosc_text)
             
-            # Walidacja zakresów
             if not (-90 <= szerokosc <= 90):
                 raise ValueError("Szerokość geograficzna musi być między -90 a 90")
             if not (-180 <= dlugosc <= 180):
@@ -888,7 +826,6 @@ def centrum_edit(centrum_id):
             dlugosc_geograficzna = request.form.get("dlugosc_geograficzna", "").strip()
             pojemnosc = request.form.get("pojemnosc", "").strip()
             
-            # Walidacja - wszystkie pola wymagane
             if not all([nazwa, adres, miasto_id, szerokosc_geograficzna, dlugosc_geograficzna, pojemnosc]):
                 cur.execute("SELECT id, nazwa FROM miasto ORDER BY nazwa")
                 miasta = cur.fetchall()
@@ -903,19 +840,16 @@ def centrum_edit(centrum_id):
                                        miasta=miasta,
                                        centrum=centrum)
             
-            # Konwersja typów
             try:
                 miasto_id = int(miasto_id)
                 pojemnosc_int = int(pojemnosc)
                 
-                # ✅ ZAMIANA PRZECINKA NA KROPKĘ
                 szerokosc_text = szerokosc_geograficzna.replace(',', '.')
                 dlugosc_text = dlugosc_geograficzna.replace(',', '.')
                 
                 szerokosc = float(szerokosc_text)
                 dlugosc = float(dlugosc_text)
                 
-                # Walidacja zakresów
                 if not (-90 <= szerokosc <= 90):
                     raise ValueError("Szerokość geograficzna musi być między -90 a 90")
                 if not (-180 <= dlugosc <= 180):
@@ -937,7 +871,6 @@ def centrum_edit(centrum_id):
                                        miasta=miasta,
                                        centrum=centrum)
             
-            # UPDATE
             try:
                 cur.execute("""
                     UPDATE centrum_logistyczne
@@ -962,7 +895,6 @@ def centrum_edit(centrum_id):
                                        miasta=miasta,
                                        centrum=centrum)
         
-        # GET – wczytaj dane
         cur.execute("""
             SELECT id, nazwa, adres, miasto_id, szerokosc_geograficzna, dlugosc_geograficzna, pojemnosc 
             FROM centrum_logistyczne WHERE id=%s
@@ -987,7 +919,6 @@ def centrum_delete(centrum_id):
     cur = conn.cursor()
     
     try:
-        # Sprawdzenie czy są powiązane paczkomaty
         cur.execute("SELECT id FROM paczkomat WHERE centrum_id=%s", (centrum_id,))
         if cur.fetchone():
             return "Nie można usunąć centrum z przypisanymi paczkomatami", 400
@@ -1004,10 +935,6 @@ def centrum_delete(centrum_id):
         cur.close()
         conn.close()
 
-
-# ============================================
-# PACZKOMATY – CRUD z SORTOWANIEM
-# ============================================
 
 @admin_bp.route("/paczkomaty")
 def paczkomaty():
@@ -1085,7 +1012,6 @@ def paczkomat_new():
         try:
             centra = load_centra(cur)
 
-            # walidacja pól
             if not all([kod, adres, centrum_id, szer, dl]) or (sk_s <= 0 and sk_m <= 0 and sk_l <= 0):
                 return render_template(
                     "admin_edit_paczkomat.html",
@@ -1103,7 +1029,6 @@ def paczkomat_new():
                     paczkomat=None
                 )
 
-            # sprawdź unikalność kodu
             cur.execute("SELECT id FROM paczkomat WHERE kod=%s", (kod,))
             if cur.fetchone():
                 return render_template(
@@ -1113,10 +1038,8 @@ def paczkomat_new():
                     paczkomat=None
                 )
 
-            # INSERT nowego paczkomatu + wygenerowanie skrytek
             cur2 = conn.cursor()
             try:
-                # 1. paczkomat
                 cur2.execute("""
                     INSERT INTO paczkomat (
                         kod, adres, centrum_id,
@@ -1136,13 +1059,11 @@ def paczkomat_new():
                       sk_s, sk_m, sk_l))
                 paczkomat_id = cur2.fetchone()[0]
 
-                # 2. wygeneruj skrytki S/M/L (status 'Wolna')
                 numer = 1
 
                 cur2.execute("SELECT id FROM status_skrytki WHERE status = 'Wolna'")
                 status_wolna_id = cur2.fetchone()[0]
 
-                # S
                 cur2.execute("SELECT id FROM rozmiar_skrytki WHERE rozmiar = 'S'")
                 rozmiar_s_id = cur2.fetchone()[0]
                 for _ in range(sk_s):
@@ -1152,7 +1073,6 @@ def paczkomat_new():
                     """, (paczkomat_id, numer, rozmiar_s_id, status_wolna_id))
                     numer += 1
 
-                # M
                 cur2.execute("SELECT id FROM rozmiar_skrytki WHERE rozmiar = 'M'")
                 rozmiar_m_id = cur2.fetchone()[0]
                 for _ in range(sk_m):
@@ -1162,7 +1082,6 @@ def paczkomat_new():
                     """, (paczkomat_id, numer, rozmiar_m_id, status_wolna_id))
                     numer += 1
 
-                # L
                 cur2.execute("SELECT id FROM rozmiar_skrytki WHERE rozmiar = 'L'")
                 rozmiar_l_id = cur2.fetchone()[0]
                 for _ in range(sk_l):
@@ -1189,7 +1108,6 @@ def paczkomat_new():
         finally:
             cur.close()
 
-    # GET – formularz pusty
     cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
         centra = load_centra(cur)
@@ -1269,7 +1187,6 @@ def paczkomat_edit(paczkomat_id):
                 )
             
             try:
-                # 1. aktualizacja paczkomatu
                 cur.execute("""
                     UPDATE paczkomat
                     SET kod=%s,
@@ -1286,7 +1203,6 @@ def paczkomat_edit(paczkomat_id):
                       szer, dl,
                       paczkomat_id))
 
-                # 2. dopisz brakujące skrytki (bez kasowania istniejących)
                 cur.execute("""
                     SELECT rs.rozmiar, COUNT(*) AS ile
                     FROM skrytka s
@@ -1353,7 +1269,6 @@ def paczkomat_edit(paczkomat_id):
                     paczkomat=paczkomat_ctx
                 )
         
-        # GET
         cur.execute("""
             SELECT id, kod, adres, centrum_id,
                    liczba_skrytek_s, liczba_skrytek_m, liczba_skrytek_l,

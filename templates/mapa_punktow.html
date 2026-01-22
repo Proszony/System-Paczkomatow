@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function() {
   var paczkomatyByKod = {};
   var wszystkieKody = [];
 
-  // Ikona dla paczkomatu
+
   var paczkomatIcon = L.icon({
     iconUrl: "{{ url_for('static', filename='paczkomat-marker-2.png') }}",
     iconSize:     [25, 41],
@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function() {
     shadowAnchor: [12, 41]
   });
 
-  // Ikona dla centrum
+  
   var centrumIcon = L.icon({
     iconUrl: "{{ url_for('static', filename='centrum-marker.png') }}",
     iconSize:     [25, 41],
@@ -85,14 +85,14 @@ document.addEventListener("DOMContentLoaded", function() {
   fetch("{{ url_for('mapa.api_punkty') }}")
     .then(r => r.json())
     .then(data => {
-      // CENTRA
+
       data.centra.forEach(c => {
         L.marker([c.lat, c.lon], { title: c.nazwa, icon: centrumIcon })
           .bindPopup("Centrum: " + c.nazwa)
           .addTo(centraLayer);
       });
 
-      // PACZKOMATY
+
       data.paczkomaty.forEach(p => {
         var marker = L.marker([p.lat, p.lon], { icon: paczkomatIcon })
           .bindPopup("Paczkomat: " + p.nazwa)
@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function() {
         wszystkieKody.push(p.nazwa);
       });
 
-      // domyślnie tylko centra
+
       paczkomatyLayer.removeFrom(map);
 
       function updateLayers() {
@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", function() {
       map.on('zoomend', updateLayers);
       updateLayers();
 
-      // ---- wyszukiwanie + autocomplete ----
+
       var searchForm = document.getElementById("search-form");
       var searchInput = document.getElementById("search-input");
       var suggestionsBox = document.getElementById("search-suggestions");
@@ -136,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
       if (searchForm && searchInput && suggestionsBox) {
 
-        // podpowiedzi podczas pisania
+
         searchInput.addEventListener("input", function () {
           var val = (searchInput.value || "").toUpperCase().trim();
           suggestionsBox.innerHTML = "";
@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function() {
           suggestionsBox.style.display = "block";
         });
 
-        // ukryj dropdown przy kliknięciu poza nim
+
         document.addEventListener("click", function (e) {
           if (!suggestionsBox.contains(e.target) &&
               e.target !== searchInput) {
@@ -179,7 +179,7 @@ document.addEventListener("DOMContentLoaded", function() {
           }
         });
 
-        // submit (Enter / przycisk "Szukaj")
+
         searchForm.addEventListener("submit", function (e) {
           e.preventDefault();
           var kod = (searchInput.value || "").trim().toUpperCase();

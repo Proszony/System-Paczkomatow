@@ -11,18 +11,18 @@ przesylka_bp = Blueprint('przesylka', __name__, url_prefix='/przesylka')
 @przesylka_bp.route("/nadaj", methods=["GET", "POST"])
 @login_required
 def nadaj():
-    """Nowa przesyłka (dla klientów)"""
+    """Nowa przesyłka"""
     if session.get('user_type') != 'Klient':
         return "Brak dostępu", 403
     
-    # --- sekcja wspólna (GET + ponowne wyrenderowanie przy błędzie) ---
+    
     conn = get_conn()
     if not conn:
         return "Błąd połączenia z bazą", 500
     
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # pobierz tylko zalogowanego klienta jako nadawcę
+    
     cur.execute("""
         SELECT id, imie, nazwisko, email 
         FROM klient
@@ -36,7 +36,7 @@ def nadaj():
         conn.close()
         return "Twoje konto jest nieaktywne lub nie istnieje", 403
 
-    # odbiorcy (inni aktywni klienci)
+    
     cur.execute("""
         SELECT id, imie, nazwisko, email 
         FROM klient
@@ -46,7 +46,7 @@ def nadaj():
     """, (session['user_id'],))
     odbiorcy = cur.fetchall()
     
-    # paczkomaty sprawne
+    
     cur.execute("""
         SELECT id, kod, adres
         FROM paczkomat
@@ -55,14 +55,14 @@ def nadaj():
     """)
     paczkomaty = cur.fetchall()
     
-    # rozmiary
+    
     cur.execute("SELECT id, rozmiar FROM rozmiar_przesylki ORDER BY id")
     rozmiary = cur.fetchall()
     
     cur.close()
     conn.close()
     
-    # --- POST: utworzenie przesyłki + rezerwacja skrytki ---
+    
     if request.method == "POST":
         try:
             nadawca_id = session['user_id']
@@ -76,7 +76,7 @@ def nadaj():
             if waga <= 0:
                 raise ValueError("waga_ujemna")
         except ValueError:
-            # konkretny komunikat dla błędnej wagi
+            
             return render_template(
                 "nadaj_przesylke.html",
                 blad="Błędna waga. Podaj dodatnią liczbę w kilogramach, np. 2.5.",
@@ -95,7 +95,7 @@ def nadaj():
                 rozmiary=rozmiary
             ), 400
 
-        # oblicz koszt
+        
         koszt_info = oblicz_koszt_przesylki(
             paczkomat_nadania_id, paczkomat_docelowy_id, rozmiar_id, waga
         )
@@ -111,14 +111,14 @@ def nadaj():
         
         koszt = koszt_info['koszt']
 
-        # jedna transakcja: rezerwacja skrytki + utworzenie przesyłki + wpis rezerwacji
+        
         conn = get_conn()
         if not conn:
             return "Błąd połączenia z bazą", 500
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         try:
-            # 1. znajdź wolną skrytkę odpowiedniego rozmiaru w paczkomacie nadania
+            
             cur.execute("""
                 SELECT s.id
                 FROM skrytka s
@@ -147,14 +147,14 @@ def nadaj():
 
             skrytka_id = skrytka["id"]
 
-            # 2. zarezerwuj skrytkę (status_skrytki = 'Zarezerwowana')
+            
             cur.execute("""
                 UPDATE skrytka
                 SET status_id = (SELECT id FROM status_skrytki WHERE status = 'Zarezerwowana')
                 WHERE id = %s
             """, (skrytka_id,))
 
-            # 3. utwórz przesyłkę w statusie 'Utworzona'
+            
             cur.execute("""
                 INSERT INTO przesylka 
                 (numer_przesylki, nadawca_id, odbiorca_id, 
@@ -178,7 +178,7 @@ def nadaj():
             przesylka_id_row = cur.fetchone()
             przesylka_id = przesylka_id_row["id"] if isinstance(przesylka_id_row, dict) else przesylka_id_row
 
-            # 4. wpis do rezerwacja_skrytki (Aktywna)
+            
             cur.execute("""
                 INSERT INTO rezerwacja_skrytki
                     (przesylka_id, skrytka_id, data_rezerwacji, data_wygasniecia, status_id)
@@ -202,7 +202,7 @@ def nadaj():
             conn.rollback()
             cur.close()
             conn.close()
-            # tu ewentualnie logujesz szczegóły wyjątku do pliku / loggera
+            
             return render_template(
                 "nadaj_przesylke.html",
                 blad="Wystąpił nieoczekiwany błąd podczas tworzenia przesyłki. Spróbuj ponownie za chwilę.",
@@ -212,7 +212,7 @@ def nadaj():
                 rozmiary=rozmiary
             ), 500
 
-    # --- GET ---
+    
     return render_template(
         "nadaj_przesylke.html",
         nadawca=nadawca,
@@ -273,14 +273,14 @@ def status(przesylka_id):
         conn.close()
         return "Przesyłka nie istnieje", 404
     
-    # Dostęp klienta tylko do swoich
+    
     if session.get('user_type') == 'Klient':
         if session['user_id'] != przesylka['nadawca_id'] and session['user_id'] != przesylka['odbiorca_id']:
             cur.close()
             conn.close()
             return "Brak dostępu do tej przesyłki", 403
     
-    # Historia
+    
     cur.execute("""
         SELECT
             hs.data_zmiany,
@@ -316,7 +316,7 @@ def lista():
         user_role = session.get('user_role')
 
         if user_type == 'Klient':
-            # Klient widzi tylko swoje przesyłki
+            
             cur.execute("""
                 SELECT p.id, p.numer_przesylki, p.koszt, s.status,
                        p.data_nadania, p.data_dostarczenia,
@@ -333,7 +333,7 @@ def lista():
 
         elif user_type == 'Pracownik':
             if user_role == 'Kierownik':
-                # Kierownik – przesyłki 'Nadana' z paczkomatów jego centrum
+                
                 cur.execute("""
                     SELECT centrum_id
                     FROM kierownik_centrum
@@ -369,7 +369,7 @@ def lista():
                 """, (centrum_id,))
 
             elif user_role == 'Administrator':
-                # Admin – widzi wszystkie
+                
                 cur.execute("""
                     SELECT p.id, p.numer_przesylki, p.koszt, s.status,
                            p.data_nadania, p.data_dostarczenia,
@@ -383,11 +383,11 @@ def lista():
                     LIMIT 50
                 """)
             else:
-                # Inny pracownik – na razie brak widoku
+                
                 return "Brak uprawnień do podglądu listy przesyłek", 403
 
         else:
-            # Fallback – brak znanego typu użytkownika
+            
             return "Brak uprawnień do podglądu listy przesyłek", 403
 
         przesylki = cur.fetchall()
@@ -414,7 +414,7 @@ def oznacz_jako_nadana(przesylka_id):
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
-        # sprawdź, czy to przesyłka tego klienta i czy jest 'Utworzona'
+        
         cur.execute("""
             SELECT p.id, s.status, p.nadawca_id, p.odbiorca_id
             FROM przesylka p
@@ -432,7 +432,7 @@ def oznacz_jako_nadana(przesylka_id):
             flash("Tę przesyłkę można nadać tylko, gdy jest w statusie 'Utworzona'.", "warning")
             return redirect(url_for("klient.szczegoly_przesylki", przesylka_id=przesylka_id))
 
-        # zmiana statusu na 'Nadana'
+        
         cur.execute("""
             UPDATE przesylka
             SET status_id = (SELECT id FROM status_przesylki WHERE status = 'Nadana'),
@@ -440,7 +440,7 @@ def oznacz_jako_nadana(przesylka_id):
             WHERE id = %s
         """, (przesylka_id,))
 
-        # wpis do historii_statusu
+        
         cur.execute("""
             INSERT INTO historia_statusu (przesylka_id, status_z_id, status_na_id, zmienil, data_zmiany, uwagi)
             VALUES (
@@ -479,7 +479,7 @@ def anuluj(przesylka_id):
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
-        # 1. sprawdź, czy przesyłka istnieje i należy do użytkownika
+        
         cur.execute("""
             SELECT p.id, s.status, p.nadawca_id, p.odbiorca_id
             FROM przesylka p
@@ -497,7 +497,7 @@ def anuluj(przesylka_id):
             flash("Tę przesyłkę można anulować tylko w statusie 'Utworzona'.", "warning")
             return redirect(url_for("klient.szczegoly_przesylki", przesylka_id=przesylka_id))
 
-        # 2. znajdź aktywną rezerwację skrytki
+        
         cur.execute("""
             SELECT rs.skrytka_id, rs.status_id
             FROM rezerwacja_skrytki rs
@@ -512,14 +512,14 @@ def anuluj(przesylka_id):
         if rez:
             skrytka_id = rez["skrytka_id"]
 
-            # 3. zwolnij skrytkę (status_skrytki -> 'Wolna')
+            
             cur.execute("""
                 UPDATE skrytka
                 SET status_id = (SELECT id FROM status_skrytki WHERE status = 'Wolna')
                 WHERE id = %s
             """, (skrytka_id,))
 
-            # 4. ustaw rezerwację jako zakończoną
+            
             cur.execute("""
                 UPDATE rezerwacja_skrytki
                 SET status_id = (SELECT id FROM status_rezerwacji WHERE status = 'Zwolniona'),
@@ -528,14 +528,14 @@ def anuluj(przesylka_id):
                   AND skrytka_id = %s
             """, (przesylka_id, skrytka_id))
 
-        # 5. zmień status przesyłki na 'Anulowana'
+        
         cur.execute("""
             UPDATE przesylka
             SET status_id = (SELECT id FROM status_przesylki WHERE status = 'Anulowana')
             WHERE id = %s
         """, (przesylka_id,))
 
-        # 6. wpis do historii statusów
+        
         cur.execute("""
             INSERT INTO historia_statusu (przesylka_id, status_z_id, status_na_id, zmienil, data_zmiany, uwagi)
             VALUES (
@@ -574,7 +574,7 @@ def odbierz(przesylka_id):
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
-        # 1. pobierz przesyłkę
+        
         cur.execute("""
             SELECT p.id, p.odbiorca_id, p.status_id, sp.status
             FROM przesylka p
@@ -592,7 +592,7 @@ def odbierz(przesylka_id):
             flash("Tę przesyłkę można odebrać tylko, gdy jest w statusie 'Doreczona'.", "warning")
             return redirect(url_for("klient.szczegoly_przesylki", przesylka_id=przesylka_id))
 
-        # 2. znajdź skrytkę i aktywną rezerwację
+        
         cur.execute("""
             SELECT rs.skrytka_id, rs.status_id
             FROM rezerwacja_skrytki rs
@@ -606,14 +606,14 @@ def odbierz(przesylka_id):
         if rez:
             skrytka_id = rez["skrytka_id"]
 
-            # zwolnij skrytkę
+            
             cur.execute("""
                 UPDATE skrytka
                 SET status_id = (SELECT id FROM status_skrytki WHERE status = 'Wolna')
                 WHERE id = %s
             """, (skrytka_id,))
 
-            # oznacz rezerwację jako zakończoną
+            
             cur.execute("""
                 UPDATE rezerwacja_skrytki
                 SET status_id = (SELECT id FROM status_rezerwacji WHERE status = 'Zwolniona'),
@@ -623,14 +623,14 @@ def odbierz(przesylka_id):
                   AND status_id = %s
             """, (przesylka_id, skrytka_id, rez["status_id"]))
 
-        # 3. zmień status przesyłki na 'Odebrana'
+        
         cur.execute("""
             UPDATE przesylka
             SET status_id = (SELECT id FROM status_przesylki WHERE status = 'Odebrana')
             WHERE id = %s
         """, (przesylka_id,))
 
-        # 4. wpis do historii statusów
+        
         cur.execute("""
             INSERT INTO historia_statusu (
                 przesylka_id, status_z_id, status_na_id, zmienil, data_zmiany, uwagi
@@ -681,7 +681,7 @@ def api_koszt_przesylki():
 @przesylka_bp.route("/<int:przesylka_id>/zglos_uszkodzenie", methods=["POST"])
 @login_required
 def zglos_uszkodzenie(przesylka_id):
-    # tylko klient
+    
     if session.get("user_type") != "Klient":
         return "Brak dostępu", 403
 
@@ -691,7 +691,7 @@ def zglos_uszkodzenie(przesylka_id):
 
     cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        # sprawdź, czy przesyłka istnieje i czy to jej odbiorca
+        
         cur.execute(
             """
             SELECT p.id,
@@ -730,13 +730,13 @@ def zglos_uszkodzenie(przesylka_id):
                 url_for("klient.szczegoly_przesylki", przesylka_id=przesylka_id)
             )
 
-        # ustaw flagę na true
+        
         cur.execute(
             "UPDATE przesylka SET flaga_uszkodzona = TRUE WHERE id = %s",
             (przesylka_id,),
         )
 
-        # wpis do historii (status się nie zmienia – z/na ten sam)
+        
         cur.execute(
             """
             INSERT INTO historia_statusu
@@ -774,7 +774,7 @@ def uwagi_uszkodzenie(przesylka_id):
 
     cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        # sprawdź, czy przesyłka należy do odbiorcy i jest oznaczona jako uszkodzona
+        
         cur.execute(
             """
             SELECT p.id, p.odbiorca_id, p.flaga_uszkodzona

@@ -4,10 +4,6 @@ from flask import current_app
 import re
 
 
-# ============================================
-# BAZA DANYCH
-# ============================================
-
 def get_conn():
     """Tworzy połączenie z bazą danych PostgreSQL"""
     try:
@@ -23,9 +19,6 @@ def get_conn():
         print(f"❌ Błąd połączenia z bazą: {e}")
         return None
 
-# ============================================
-# REZERWACJA SKRYTKI
-# ============================================
 
 def zarezerwuj_skrytke(przesylka_id, paczkomat_id, rozmiar_id):
     """
@@ -40,7 +33,7 @@ def zarezerwuj_skrytke(przesylka_id, paczkomat_id, rozmiar_id):
     
     cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        # 1. znajdź wolną skrytkę pasującego rozmiaru
+        
         cur.execute("""
             SELECT s.id
             FROM skrytka s
@@ -58,14 +51,14 @@ def zarezerwuj_skrytke(przesylka_id, paczkomat_id, rozmiar_id):
 
         skrytka_id = skrytka["id"]
 
-        # 2. ustaw status skrytki na "Zarezerwowana"
+        
         cur.execute("""
             UPDATE skrytka
             SET status_id = (SELECT id FROM status_skrytki WHERE status = 'Zarezerwowana')
             WHERE id = %s
         """, (skrytka_id,))
 
-        # 3. wpis do rezerwacja_skrytki
+        
         cur.execute("""
             INSERT INTO rezerwacja_skrytki (przesylka_id, skrytka_id, status, data_utworzenia)
             VALUES (%s, %s, 'Zarezerwowana', CURRENT_TIMESTAMP)
@@ -77,10 +70,6 @@ def zarezerwuj_skrytke(przesylka_id, paczkomat_id, rozmiar_id):
         cur.close()
         conn.close()
 
-
-# ============================================
-# OBLICZENIA
-# ============================================
 
 def oblicz_koszt_przesylki(paczkomat_nadania_id, paczkomat_docelowy_id, rozmiar_id, waga):
     """
@@ -157,10 +146,6 @@ def oblicz_koszt_przesylki(paczkomat_nadania_id, paczkomat_docelowy_id, rozmiar_
         return None
 
 
-# ============================================
-# WALIDACJA DANYCH
-# ============================================
-
 def validate_email(email):
     """
     Waliduje format email.
@@ -227,17 +212,9 @@ def validate_nazwa_miasta(nazwa):
     return True, ""
 
 
-# ============================================
-# LOGI (TODO: w przyszłości)
-# ============================================
-
 def log_akcja(typ_akcji, opis, status_kod='SUKCES'):
     """
     TODO: Zaloguj akcję użytkownika do tabeli audit_log.
-    
-    Args:
-        typ_akcji (str): Typ akcji (np. REJESTRACJA, LOGIN, EDYCJA_UŻYTKOWNIKA)
-        opis (str): Opis akcji
-        status_kod (str): Kod statusu (SUKCES, BŁĄD)
+
     """
     pass

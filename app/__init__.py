@@ -11,9 +11,9 @@ def create_app(config_class=Config):
         config_class: Klasa konfiguracji (domyślnie Config)
     
     Returns:
-        Flask app instance
+        instancje aplikacji Flask
     """
-    # Określ ścieżkę do templates (folder w ROOT projektu)
+    
     template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
     static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static'))
 
@@ -33,11 +33,11 @@ def create_app(config_class=Config):
 
     app.config.from_object(config_class)
     
-    # Rejestracja blueprintów (ścieżek)
+    
     from app.routes import register_blueprints
     register_blueprints(app)
     
-    # Rejestracja error handlerów
+    
     register_error_handlers(app)
     
     return app

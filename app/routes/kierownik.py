@@ -18,7 +18,7 @@ def dashboard():
     
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    # Pobierz centrum kierownika
+    
     cur.execute("""
         SELECT c.id, c.nazwa, c.adres
         FROM kierownik_centrum kc
@@ -35,7 +35,7 @@ def dashboard():
 
     centrum_id = centrum['id']
     
-    # 1) Paczkomaty w centrum
+    
     cur.execute("""
         SELECT COUNT(*) AS cnt
         FROM paczkomat
@@ -43,7 +43,7 @@ def dashboard():
     """, (centrum_id,))
     paczkomaty = cur.fetchone()['cnt']
     
-    # 2) Przesyłki NADANE z paczkomatów tego centrum – tylko aktywne
+    
     cur.execute("""
         SELECT COUNT(*) AS cnt
         FROM przesylka p
@@ -54,7 +54,7 @@ def dashboard():
     """, (centrum_id,))
     nadane_z_centrum = cur.fetchone()['cnt']
     
-    # 3) Przesyłki, których PACZKOMAT DOCELOWY jest w tym centrum – tylko aktywne
+    
     cur.execute("""
         SELECT COUNT(*) AS cnt
         FROM przesylka p
@@ -65,7 +65,7 @@ def dashboard():
     """, (centrum_id,))
     do_centrum = cur.fetchone()['cnt']
     
-    # 4) Przesyłki "W transporcie" powiązane z tym centrum (opcjonalnie możesz zawęzić)
+    
     cur.execute("""
         SELECT COUNT(*) AS cnt
         FROM przesylka p
@@ -100,7 +100,7 @@ def paczkomaty():
 
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Pobierz ID centrum kierownika
+    
     cur.execute("""
         SELECT c.id
         FROM kierownik_centrum kc
@@ -114,7 +114,7 @@ def paczkomaty():
         conn.close()
         return "Centrum nie znalezione", 404
 
-    # Paczkomaty w centrum z zapełnieniem skrytek
+    
     cur.execute("""
         SELECT
             p.id,
@@ -156,7 +156,7 @@ def przesylki_nadane_z_centrum():
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
-        # centrum kierownika
+        
         cur.execute("""
             SELECT centrum_id
             FROM kierownik_centrum
@@ -167,7 +167,7 @@ def przesylki_nadane_z_centrum():
             return "Brak przypisanego centrum dla tego kierownika", 403
         centrum_id = row["centrum_id"]
 
-        # przesyłki nadane z paczkomatów tego centrum (status Nadana lub Przyjeta w centrum)
+        
         cur.execute("""
             SELECT 
                 p.id,
@@ -217,8 +217,8 @@ def przesylki_do_centrum():
             return "Brak przypisanego centrum dla tego kierownika", 403
         centrum_id = row["centrum_id"]
 
-        # przesyłki, których paczkomat docelowy jest w tym centrum
-        # i są 'W transporcie' lub 'Przyjeta w centrum'
+        
+        
         cur.execute("""
             SELECT 
                 p.id,
@@ -249,7 +249,7 @@ def przesylki_do_centrum():
 @kierownik_bp.route("/przesylka/<int:przesylka_id>/przyjmij-w-centrum", methods=["POST"])
 @login_required
 def przyjmij_w_centrum(przesylka_id):
-    # tylko kierownik
+    
     if session.get("user_type") != "Pracownik" or session.get("user_role") != "Kierownik":
         return "Brak dostępu", 403
 
@@ -259,7 +259,7 @@ def przyjmij_w_centrum(przesylka_id):
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
-        # centrum kierownika
+        
         cur.execute("""
             SELECT centrum_id
             FROM kierownik_centrum
@@ -270,7 +270,7 @@ def przyjmij_w_centrum(przesylka_id):
             return "Brak przypisanego centrum dla tego kierownika", 403
         centrum_id = row["centrum_id"]
 
-        # pobierz przesyłkę + centrum nadania + status
+        
         cur.execute("""
             SELECT 
                 p.id,
@@ -286,15 +286,15 @@ def przyjmij_w_centrum(przesylka_id):
         if not przes:
             return "Przesyłka nie istnieje", 404
 
-        # czy ta paczka należy do centrum kierownika
+        
         if przes["centrum_nadania"] != centrum_id:
             return "Przesyłka nie należy do Twojego centrum", 403
 
-        # czy ma właściwy status
+        
         if przes["status_tekst"] != "Nadana":
             return "Tę przesyłkę nie można przyjąć w centrum (nie jest w statusie 'Nadana')", 400
 
-        # id statusu "Przyjeta w centrum"
+        
         cur.execute("""
             SELECT id
             FROM status_przesylki
@@ -305,14 +305,14 @@ def przyjmij_w_centrum(przesylka_id):
             return "Brak statusu 'Przyjeta w centrum' w bazie", 500
         status_przyjeta_id = row["id"]
 
-        # aktualizacja przesyłki – zmiana statusu
+        
         cur.execute("""
             UPDATE przesylka
             SET status_id = %s
             WHERE id = %s
         """, (status_przyjeta_id, przesylka_id))
 
-        # wpis do historii statusu
+        
         cur.execute("""
             INSERT INTO historia_statusu (przesylka_id, status_z_id, status_na_id, zmienil, data_zmiany, uwagi)
             VALUES (%s, %s, %s, %s, NOW(), %s)
@@ -326,7 +326,7 @@ def przyjmij_w_centrum(przesylka_id):
 
         conn.commit()
 
-        # PO ZMIANIE STATUSU – od razu pobierz i wyrenderuj aktualną listę
+        
         cur.execute("""
             SELECT 
                 p.id,
@@ -363,10 +363,10 @@ def przyjmij_w_centrum(przesylka_id):
 def wyslij_z_centrum(przesylka_id):
     """
     Kierownik wysyła przesyłkę z centrum:
-    - jeśli paczkomat docelowy jest w tym samym centrum -> od razu doręcza do paczkomatu docelowego (rezerwuje skrytkę, status 'Doreczona')
+    - jeśli paczkomat docelowy jest w tym samym centrum -> od razu doręcza do paczkomatu docelowego
     - jeśli paczkomat docelowy jest w innym centrum -> ustawia status 'W transporcie'
     """
-    # tylko pracownik-kierownik
+    
     if session.get("user_type") != "Pracownik" or session.get("user_role") != "Kierownik":
         return "Brak dostępu", 403
 
@@ -376,7 +376,7 @@ def wyslij_z_centrum(przesylka_id):
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
-        # 1. centrum kierownika
+        
         cur.execute("""
             SELECT centrum_id
             FROM kierownik_centrum
@@ -387,7 +387,7 @@ def wyslij_z_centrum(przesylka_id):
             return "Brak przypisanego centrum dla tego kierownika", 403
         centrum_kierownika_id = row["centrum_id"]
 
-        # 2. przesyłka z paczkomatami i rozmiarem
+        
         cur.execute("""
             SELECT 
                 p.id,
@@ -408,12 +408,12 @@ def wyslij_z_centrum(przesylka_id):
         if not prs:
             return "Przesyłka nie istnieje", 404
 
-        # 3. czy ta przesyłka jest z centrum kierownika
+        
         if prs["centrum_nadania_id"] != centrum_kierownika_id:
             return "Przesyłka nie należy do Twojego centrum", 403
 
-        # 4. tylko 'Przyjeta w centrum' może być wysłana z centrum
-        # UPEWNIJ SIĘ, że dokładnie tak nazywa się status w tabeli status_przesylki
+        
+        
         if prs["status_tekst"] != "Przyjeta w centrum":
             flash("Przesyłkę można wysłać z centrum tylko w statusie 'Przyjeta w centrum'.", "warning")
             return redirect(url_for("kierownik.przesylki_nadane_z_centrum"))
@@ -421,9 +421,9 @@ def wyslij_z_centrum(przesylka_id):
         ten_sam_centr = (prs["centrum_nadania_id"] == prs["centrum_docelowe_id"])
 
         if ten_sam_centr:
-            # ====== DOSTAWA LOKALNA: od razu do paczkomatu docelowego ======
+            
 
-            # 5. znajdź wolną skrytkę w paczkomacie docelowym o rozmiarze przesyłki
+            
             cur.execute("""
                 SELECT s.id
                 FROM skrytka s
@@ -443,14 +443,14 @@ def wyslij_z_centrum(przesylka_id):
 
             skrytka_id = skrytka["id"]
 
-            # 6. zarezerwuj skrytkę docelową
+            
             cur.execute("""
                 UPDATE skrytka
                 SET status_id = (SELECT id FROM status_skrytki WHERE status = 'Zarezerwowana')
                 WHERE id = %s
             """, (skrytka_id,))
 
-            # 7. utwórz rezerwację skrytki docelowej (status 'Aktywna')
+            
             cur.execute("""
                 INSERT INTO rezerwacja_skrytki
                     (przesylka_id, skrytka_id, data_rezerwacji, data_wygasniecia, status_id)
@@ -463,14 +463,14 @@ def wyslij_z_centrum(przesylka_id):
                 )
             """, (przesylka_id, skrytka_id))
 
-            # 8. zmień status przesyłki na 'Doreczona' (gotowa do odbioru z paczkomatu)
+            
             cur.execute("""
                 UPDATE przesylka
                 SET status_id = (SELECT id FROM status_przesylki WHERE status = 'Doreczona')
                 WHERE id = %s
             """, (przesylka_id,))
 
-            # 9. historia statusu
+            
             cur.execute("""
                 INSERT INTO historia_statusu (przesylka_id, status_z_id, status_na_id, zmienil, data_zmiany, uwagi)
                 VALUES (
@@ -484,7 +484,7 @@ def wyslij_z_centrum(przesylka_id):
             """, (przesylka_id, str(session["user_id"])))
 
         else:
-            # ====== INNE MIASTO / CENTRUM: w trasie między centrami ======
+            
 
             cur.execute("""
                 UPDATE przesylka
@@ -528,7 +528,7 @@ def przyjmij_w_centrum_batch():
         flash("Nie zaznaczono żadnej przesyłki.", "warning")
         return redirect(url_for("kierownik.przesylki_nadane_z_centrum"))
 
-    # zamiana na liczby całkowite i filtr śmieci
+    
     try:
         przesylki_ids = [int(x) for x in ids]
     except ValueError:
@@ -541,7 +541,7 @@ def przyjmij_w_centrum_batch():
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
-        # centrum kierownika
+        
         cur.execute("""
             SELECT centrum_id
             FROM kierownik_centrum
@@ -552,7 +552,7 @@ def przyjmij_w_centrum_batch():
             return "Brak przypisanego centrum dla tego kierownika", 403
         centrum_kierownika_id = row["centrum_id"]
 
-        # tylko przesyłki z tego centrum i statusem 'Nadana'
+        
         cur.execute("""
             SELECT p.id
             FROM przesylka p
@@ -568,14 +568,14 @@ def przyjmij_w_centrum_batch():
             flash("Brak przesyłek w statusie 'Nadana' do przyjęcia.", "warning")
             return redirect(url_for("kierownik.przesylki_nadane_z_centrum"))
 
-        # zmiana statusu
+        
         cur.execute("""
             UPDATE przesylka
             SET status_id = (SELECT id FROM status_przesylki WHERE status = 'Przyjeta w centrum')
             WHERE id = ANY(%s)
         """, (do_przyjecia,))
 
-        # historia statusu
+        
         for pid in do_przyjecia:
             cur.execute("""
                 INSERT INTO historia_statusu (przesylka_id, status_z_id, status_na_id, zmienil, data_zmiany, uwagi)
@@ -624,7 +624,7 @@ def wyslij_z_centrum_batch():
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
-        # centrum kierownika
+        
         cur.execute("""
             SELECT centrum_id
             FROM kierownik_centrum
@@ -635,7 +635,7 @@ def wyslij_z_centrum_batch():
             return "Brak przypisanego centrum dla tego kierownika", 403
         centrum_kierownika_id = row["centrum_id"]
 
-        # wybierz przesyłki z tego centrum i statusem 'Przyjeta w centrum'
+        
         cur.execute("""
             SELECT 
                 p.id,
@@ -665,7 +665,7 @@ def wyslij_z_centrum_batch():
             ten_sam_centr = (prs["centrum_nadania_id"] == prs["centrum_docelowe_id"])
 
             if ten_sam_centr:
-                # lokalnie: od razu do paczkomatu docelowego
+                
                 cur.execute("""
                     SELECT s.id
                     FROM skrytka s
@@ -679,7 +679,7 @@ def wyslij_z_centrum_batch():
                 """, (prs["paczkomat_docelowy_id"], prs["rozmiar_id"]))
                 skrytka = cur.fetchone()
                 if not skrytka:
-                    # brak miejsca – pomiń tę przesyłkę
+                    
                     continue
 
                 skrytka_id = skrytka["id"]
@@ -723,7 +723,7 @@ def wyslij_z_centrum_batch():
                 ilosc_doreczonych += 1
 
             else:
-                # inne centrum: w trasie
+                
                 cur.execute("""
                     UPDATE przesylka
                     SET status_id = (SELECT id FROM status_przesylki WHERE status = 'W transporcie')
@@ -777,7 +777,7 @@ def przyjmij_z_trasy(przesylka_id):
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
-        # centrum kierownika (DOCZELOWE)
+        
         cur.execute("""
             SELECT centrum_id
             FROM kierownik_centrum
@@ -788,7 +788,7 @@ def przyjmij_z_trasy(przesylka_id):
             return "Brak przypisanego centrum dla tego kierownika", 403
         centrum_kierownika_id = row["centrum_id"]
 
-        # przesyłka: status + paczkomat docelowy + centrum docelowe
+        
         cur.execute("""
             SELECT 
                 p.id,
@@ -804,16 +804,16 @@ def przyjmij_z_trasy(przesylka_id):
         if not prs:
             return "Przesyłka nie istnieje", 404
 
-        # czy ta przesyłka jest do centrum tego kierownika
+        
         if prs["centrum_docelowe_id"] != centrum_kierownika_id:
             return "Przesyłka nie jest adresowana do Twojego centrum", 403
 
-        # musi być 'W transporcie'
+        
         if prs["status_tekst"] != "W transporcie":
             flash("Przesyłkę można przyjąć z trasy tylko w statusie 'W transporcie'.", "warning")
             return redirect(url_for("kierownik.przesylki_do_centrum"))
 
-        # id statusu 'Przyjeta w centrum'
+        
         cur.execute("""
             SELECT id
             FROM status_przesylki
@@ -824,14 +824,14 @@ def przyjmij_z_trasy(przesylka_id):
             return "Brak statusu 'Przyjeta w centrum' w bazie", 500
         status_przyjeta_id = row["id"]
 
-        # zmiana statusu
+        
         cur.execute("""
             UPDATE przesylka
             SET status_id = %s
             WHERE id = %s
         """, (status_przyjeta_id, przesylka_id))
 
-        # historia
+        
         cur.execute("""
             INSERT INTO historia_statusu (przesylka_id, status_z_id, status_na_id, zmienil, data_zmiany, uwagi)
             VALUES (
@@ -872,7 +872,7 @@ def dorecz_do_paczkomatu(przesylka_id):
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
-        # centrum kierownika (DOCZELOWE)
+        
         cur.execute("""
             SELECT centrum_id
             FROM kierownik_centrum
@@ -883,7 +883,7 @@ def dorecz_do_paczkomatu(przesylka_id):
             return "Brak przypisanego centrum dla tego kierownika", 403
         centrum_kierownika_id = row["centrum_id"]
 
-        # przesyłka + paczkomat docelowy + rozmiar
+        
         cur.execute("""
             SELECT 
                 p.id,
@@ -901,16 +901,16 @@ def dorecz_do_paczkomatu(przesylka_id):
         if not prs:
             return "Przesyłka nie istnieje", 404
 
-        # czy ta przesyłka jest do centrum tego kierownika
+        
         if prs["centrum_docelowe_id"] != centrum_kierownika_id:
             return "Przesyłka nie jest adresowana do Twojego centrum", 403
 
-        # tylko 'Przyjeta w centrum'
+        
         if prs["status_tekst"] != "Przyjeta w centrum":
             flash("Przesyłkę można doręczyć do paczkomatu tylko w statusie 'Przyjeta w centrum'.", "warning")
             return redirect(url_for("kierownik.przesylki_do_centrum"))
 
-        # znajdź wolną skrytkę w paczkomacie docelowym o podanym rozmiarze
+        
         cur.execute("""
             SELECT s.id
             FROM skrytka s
@@ -930,14 +930,14 @@ def dorecz_do_paczkomatu(przesylka_id):
 
         skrytka_id = skrytka["id"]
 
-        # zarezerwuj skrytkę (status 'Zarezerwowana')
+        
         cur.execute("""
             UPDATE skrytka
             SET status_id = (SELECT id FROM status_skrytki WHERE status = 'Zarezerwowana')
             WHERE id = %s
         """, (skrytka_id,))
 
-        # utwórz rezerwację skrytki (Aktywna, 3 dni)
+        
         cur.execute("""
             INSERT INTO rezerwacja_skrytki
                 (przesylka_id, skrytka_id, data_rezerwacji, data_wygasniecia, status_id)
@@ -950,14 +950,14 @@ def dorecz_do_paczkomatu(przesylka_id):
             )
         """, (przesylka_id, skrytka_id))
 
-        # zmień status przesyłki na 'Doreczona'
+        
         cur.execute("""
             UPDATE przesylka
             SET status_id = (SELECT id FROM status_przesylki WHERE status = 'Doreczona')
             WHERE id = %s
         """, (przesylka_id,))
 
-        # historia statusu
+        
         cur.execute("""
             INSERT INTO historia_statusu (przesylka_id, status_z_id, status_na_id, zmienil, data_zmiany, uwagi)
             VALUES (
@@ -1005,7 +1005,7 @@ def przyjmij_z_trasy_batch():
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
-        # centrum kierownika (docelowe)
+        
         cur.execute("""
             SELECT centrum_id
             FROM kierownik_centrum
@@ -1016,7 +1016,7 @@ def przyjmij_z_trasy_batch():
             return "Brak przypisanego centrum dla tego kierownika", 403
         centrum_kierownika_id = row["centrum_id"]
 
-        # wybierz przesyłki: docelowy paczkomat w tym centrum i status 'W transporcie'
+        
         cur.execute("""
             SELECT p.id
             FROM przesylka p
@@ -1032,14 +1032,14 @@ def przyjmij_z_trasy_batch():
             flash("Brak przesyłek w statusie 'W transporcie' do przyjęcia.", "warning")
             return redirect(url_for("kierownik.przesylki_do_centrum"))
 
-        # zmiana statusu na 'Przyjeta w centrum'
+        
         cur.execute("""
             UPDATE przesylka
             SET status_id = (SELECT id FROM status_przesylki WHERE status = 'Przyjeta w centrum')
             WHERE id = ANY(%s)
         """, (do_przyjecia,))
 
-        # historia statusu
+        
         for pid in do_przyjecia:
             cur.execute("""
                 INSERT INTO historia_statusu (przesylka_id, status_z_id, status_na_id, zmienil, data_zmiany, uwagi)
@@ -1088,7 +1088,7 @@ def dorecz_do_paczkomatu_batch():
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
-        # centrum kierownika (docelowe)
+        
         cur.execute("""
             SELECT centrum_id
             FROM kierownik_centrum
@@ -1099,7 +1099,7 @@ def dorecz_do_paczkomatu_batch():
             return "Brak przypisanego centrum dla tego kierownika", 403
         centrum_kierownika_id = row["centrum_id"]
 
-        # przesyłki: paczkomat docelowy w tym centrum + status 'Przyjeta w centrum'
+        
         cur.execute("""
             SELECT 
                 p.id,
@@ -1121,7 +1121,7 @@ def dorecz_do_paczkomatu_batch():
         ilosc_doreczonych = 0
 
         for prs in przesylki:
-            # szukamy wolnej skrytki w paczkomacie docelowym
+            
             cur.execute("""
                 SELECT s.id
                 FROM skrytka s
@@ -1135,19 +1135,19 @@ def dorecz_do_paczkomatu_batch():
             """, (prs["paczkomat_docelowy_id"], prs["rozmiar_id"]))
             skrytka = cur.fetchone()
             if not skrytka:
-                # brak miejsca – pomijamy daną przesyłkę
+                
                 continue
 
             skrytka_id = skrytka["id"]
 
-            # rezerwujemy skrytkę
+            
             cur.execute("""
                 UPDATE skrytka
                 SET status_id = (SELECT id FROM status_skrytki WHERE status = 'Zarezerwowana')
                 WHERE id = %s
             """, (skrytka_id,))
 
-            # tworzymy rezerwację (Aktywna)
+            
             cur.execute("""
                 INSERT INTO rezerwacja_skrytki
                     (przesylka_id, skrytka_id, data_rezerwacji, data_wygasniecia, status_id)
@@ -1160,14 +1160,14 @@ def dorecz_do_paczkomatu_batch():
                 )
             """, (prs["id"], skrytka_id))
 
-            # status 'Doreczona'
+            
             cur.execute("""
                 UPDATE przesylka
                 SET status_id = (SELECT id FROM status_przesylki WHERE status = 'Doreczona')
                 WHERE id = %s
             """, (prs["id"],))
 
-            # historia statusu
+            
             cur.execute("""
                 INSERT INTO historia_statusu (przesylka_id, status_z_id, status_na_id, zmienil, data_zmiany, uwagi)
                 VALUES (

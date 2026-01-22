@@ -24,7 +24,6 @@ def dashboard():
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
-        # Email
         cur.execute("""
             SELECT email FROM klient
             WHERE id = %s
@@ -32,7 +31,6 @@ def dashboard():
         result = cur.fetchone()
         user_email = result['email'] if result else None
 
-        # Statystyki
         cur.execute("""
             SELECT COUNT(*) as cnt FROM przesylka
             WHERE nadawca_id = %s OR odbiorca_id = %s
@@ -55,7 +53,6 @@ def dashboard():
         """, (session['user_id'], session['user_id']))
         w_trakcie = cur.fetchone()['cnt']
 
-        # Mapowanie filtra na statusy
         if filter_value == 'delivered':
             statusy = ['Doreczona', 'Odebrana']
         elif filter_value == 'in_transit':

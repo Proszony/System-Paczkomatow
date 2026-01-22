@@ -21,7 +21,7 @@ def login_required(f):
 def login():
     """Logowanie użytkownika (admin / kierownik / klient)"""
     
-    # Jeśli już zalogowany, przekieruj do dashboardu
+    
     if 'user_id' in session:
         if session.get('user_type') == 'Pracownik':
             if session.get('user_role') == 'Administrator':
@@ -45,7 +45,7 @@ def login():
         try:
             cur = conn.cursor(cursor_factory=RealDictCursor)
             
-            # 1. Pracownik (Administrator / Kierownik)
+            
             cur.execute("""
                 SELECT p.id, p.imie, p.nazwisko, p.email, r.rola
                 FROM pracownik p
@@ -67,7 +67,7 @@ def login():
                 elif pracownik['rola'] == 'Kierownik':
                     return redirect(url_for('kierownik.dashboard'))
             
-            # 2. Klient
+            
             cur.execute("""
                 SELECT id, imie, nazwisko, email
                 FROM klient
@@ -83,7 +83,7 @@ def login():
                 session['user_type'] = 'Klient'
                 return redirect(url_for('klient.dashboard'))
             
-            # Żaden użytkownik nie znaleziony
+            
             return render_template("login.html", blad="❌ Błędny email lub hasło")
         
         except psycopg2.Error as e:
@@ -107,7 +107,7 @@ def logout():
 def register():
     """Rejestracja nowego klienta"""
 
-    # Jeśli już zalogowany, przekieruj
+    
     if 'user_id' in session:
         return redirect(url_for('klient.dashboard'))
 
@@ -118,7 +118,7 @@ def register():
         telefon = request.form.get("telefon", "").strip()
         haslo = request.form.get("haslo", "").strip()
 
-        # Walidacja podstawowa
+        
         if not all([imie, nazwisko, email, telefon, haslo]):
             return render_template("register.html", blad="❌ Wszystkie pola są wymagane")
 
@@ -146,7 +146,7 @@ def register():
         try:
             cur = conn.cursor(cursor_factory=RealDictCursor)
 
-            # Sprawdź czy email lub telefon już istnieje
+            
             cur.execute("""
                 SELECT id
                 FROM klient
@@ -159,8 +159,8 @@ def register():
                     blad="❌ Konto z takim adresem e‑mail lub numerem telefonu już istnieje"
                 )
 
-            # Wstaw nowego klienta – status 'Aktywny' i typ 'Klient'
-            # hasło zapisujemy jako hash (crypt)
+            
+            
             cur.execute("""
                 INSERT INTO klient (
                     imie, nazwisko, email, telefon, haslo_hash,
@@ -188,7 +188,7 @@ def register():
 
         except psycopg2.errors.UniqueViolation:
             conn.rollback()
-            # Fallback, gdy constraint UNIQUE zadziała szybciej niż SELECT powyżej
+            
             return render_template(
                 "register.html",
                 blad="❌ Konto z takim adresem e‑mail lub numerem telefonu już istnieje"

@@ -177,7 +177,6 @@
 </div>
 
 <script>
-    // Walidacja formularza
     document.getElementById('formPrzesylka').addEventListener('submit', function(e) {
         if (document.getElementById('odbiorca_id').value === '') {
             e.preventDefault();
@@ -201,7 +200,7 @@
         }
     });
 
-    // Podgląd kosztu – liczy backend
+    
     async function obliczKoszt() {
         const paczNadania = document.getElementById('paczkomat_nadania_id').value;
         const paczDoc = document.getElementById('paczkomat_docelowy_id').value;

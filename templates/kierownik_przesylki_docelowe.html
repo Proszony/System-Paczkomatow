@@ -82,7 +82,7 @@
 </div>
 
 <script>
-    // Zaznacz/odznacz wszystkie
+    
     document.getElementById('check_all')?.addEventListener('change', function(e) {
         const checked = e.target.checked;
         document.querySelectorAll('input[name="przesylki_ids"]').forEach(cb => {
@@ -90,7 +90,7 @@
         });
     });
 
-    // Zaznacz wszystkie z wybranym statusem
+    
     function selectByStatus(targetStatus) {
         document.querySelectorAll('#formPrzesylki tbody tr').forEach(tr => {
             const statusCell = tr.querySelector('.status-col');
@@ -102,11 +102,11 @@
     }
 
     document.getElementById('select_w_trasie')?.addEventListener('click', () => {
-        selectByStatus('W transporcie');          // dokładnie jak w status_przesylki
+        selectByStatus('W transporcie');          
     });
 
     document.getElementById('select_przyjete')?.addEventListener('click', () => {
-        selectByStatus('Przyjeta w centrum');     // dokładnie jak w status_przesylki
+        selectByStatus('Przyjeta w centrum');     
     })
 </script>
 {% endblock %}

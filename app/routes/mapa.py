@@ -10,7 +10,7 @@ mapa_bp = Blueprint("mapa", __name__, url_prefix="/mapa")
 @mapa_bp.route("/")
 @login_required
 def mapa_view():
-    # Widok z HTML i JS (Leaflet)
+    
     return render_template("mapa_punktow.html")
 
 
@@ -22,7 +22,7 @@ def api_punkty():
         return "Błąd połączenia z bazą", 500
     cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        # Centra logistyczne
+        
         cur.execute("""
             SELECT c.id,
                    m.nazwa AS nazwa,
@@ -34,7 +34,7 @@ def api_punkty():
         """)
         centra = cur.fetchall()
 
-        # Paczkomaty
+        
         cur.execute("""
             SELECT p.id,
                    p.kod AS nazwa,

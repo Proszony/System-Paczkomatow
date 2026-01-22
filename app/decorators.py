@@ -35,12 +35,12 @@ def role_required(role):
             if 'user_id' not in session:
                 return redirect(url_for('auth.login'))
             
-            # Dla pracowników (admin/kierownik) sprawdzamy user_role
+            
             if session.get('user_type') == 'Pracownik':
                 if session.get('user_role') == role:
                     return f(*args, **kwargs)
             
-            # Dla klientów sprawdzamy user_type
+            
             elif session.get('user_type') == role:
                 return f(*args, **kwargs)
             
