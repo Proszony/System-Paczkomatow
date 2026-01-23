@@ -1,0 +1,361 @@
+-- ============================================
+-- INICJALIZACJA BAZY DANYCH CBD
+-- ============================================
+
+-- Rozszerzenia
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+-- ============================================
+-- TABELE SŁOWNIKOWE
+-- ============================================
+
+CREATE TABLE STATUS_UZYTKOWNIKA (
+    ID SERIAL PRIMARY KEY,
+    Status VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE TYP_UZYTKOWNIKA (
+    ID SERIAL PRIMARY KEY,
+    Typ VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE STATUS_PRACOWNIKA (
+    ID SERIAL PRIMARY KEY,
+    Status VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE ROLA_PRACOWNIKA (
+    ID SERIAL PRIMARY KEY,
+    Rola VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE STATUS_CENTRUM (
+    ID SERIAL PRIMARY KEY,
+    Status VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE STATUS_PACZKOMATU (
+    ID SERIAL PRIMARY KEY,
+    Status VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE STATUS_SKRYTKI (
+    ID SERIAL PRIMARY KEY,
+    Status VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE STATUS_PRZESYLKI (
+    ID SERIAL PRIMARY KEY,
+    Status VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE STATUS_TRASY (
+    ID SERIAL PRIMARY KEY,
+    Status VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE STATUS_AKCJI (
+    ID SERIAL PRIMARY KEY,
+    Status VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE ROZMIAR_PRZESYLKI (
+    ID SERIAL PRIMARY KEY,
+    Rozmiar VARCHAR(10) UNIQUE NOT NULL
+);
+
+CREATE TABLE STATUS_REZERWACJI (
+    ID SERIAL PRIMARY KEY,
+    Status VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE ROZMIAR_SKRYTKI (
+    ID SERIAL PRIMARY KEY,
+    Rozmiar VARCHAR(3) NOT NULL UNIQUE
+);
+
+-- ============================================
+-- WSTAWIANIE DANYCH DO SŁOWNIKÓW
+-- ============================================
+
+INSERT INTO STATUS_UZYTKOWNIKA (Status) VALUES
+    ('Aktywny'),
+    ('Nieaktywny');
+
+INSERT INTO TYP_UZYTKOWNIKA (Typ) VALUES
+    ('Klient'),
+    ('Pracownik'),
+    ('Administrator'),
+    ('Kierownik');
+
+INSERT INTO STATUS_PRACOWNIKA (Status) VALUES
+    ('Aktywny'),
+    ('Nieaktywny'),
+    ('Zwolniony');
+
+INSERT INTO ROLA_PRACOWNIKA (Rola) VALUES
+    ('Pracownik'),
+    ('Administrator'),
+    ('Kierownik');
+
+INSERT INTO STATUS_CENTRUM (Status) VALUES
+    ('Aktywne'),
+    ('Nieaktywne'),
+    ('Zamkniete');
+
+INSERT INTO STATUS_PACZKOMATU (Status) VALUES
+    ('Sprawny'),
+    ('Awaria'),
+    ('Wylaczony');
+
+INSERT INTO STATUS_SKRYTKI (Status) VALUES
+    ('Wolna'),
+    ('Zajeta'),
+    ('Zarezerwowana'),
+    ('Uszkodzona');
+
+INSERT INTO STATUS_PRZESYLKI (Status) VALUES
+    ('Utworzona'),
+    ('Nadana'),
+    ('Przyjeta w centrum'),
+    ('W transporcie'),
+    ('Doreczona'),
+    ('Odebrana'),
+    ('Anulowana');
+
+INSERT INTO STATUS_TRASY (Status) VALUES
+    ('Zaplanowana'),
+    ('W trakcie'),
+    ('Zakonczona'),
+    ('Anulowana');
+
+INSERT INTO STATUS_AKCJI (Status) VALUES
+    ('Sukces'),
+    ('Blad');
+
+INSERT INTO ROZMIAR_PRZESYLKI (Rozmiar) VALUES
+    ('S'),
+    ('M'),
+    ('L');
+
+INSERT INTO STATUS_REZERWACJI (Status) VALUES
+    ('Aktywna'),
+    ('Zwolniona'),
+    ('Wygasla');
+
+INSERT INTO ROZMIAR_SKRYTKI (Rozmiar) VALUES
+    ('S'),
+    ('M'),
+    ('L');
+
+-- ============================================
+-- TABELE GŁÓWNE
+-- ============================================
+
+CREATE TABLE KLIENT (
+    ID SERIAL PRIMARY KEY,
+    Imie VARCHAR(50) NOT NULL,
+    Nazwisko VARCHAR(50) NOT NULL,
+    Email VARCHAR(100) UNIQUE NOT NULL,
+    Telefon VARCHAR(15) UNIQUE NOT NULL,
+    Adres VARCHAR(255),
+    Miasto VARCHAR(100),
+    Haslo_hash VARCHAR(255) NOT NULL,
+    Data_rejestracji TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    Status_ID INT NOT NULL,
+    Typ_Uzytkownika_ID INT NOT NULL,
+    FOREIGN KEY (Status_ID) REFERENCES STATUS_UZYTKOWNIKA(ID),
+    FOREIGN KEY (Typ_Uzytkownika_ID) REFERENCES TYP_UZYTKOWNIKA(ID)
+);
+
+CREATE TABLE MIASTO (
+    ID SERIAL PRIMARY KEY,
+    Nazwa VARCHAR(100) UNIQUE NOT NULL,
+    Kod VARCHAR(3) UNIQUE NOT NULL,
+    Liczba_mieszkancow INT,
+    Szerokosc_geograficzna DECIMAL(10,8) NOT NULL,
+    Dlugosc_geograficzna DECIMAL(11,8) NOT NULL
+);
+
+CREATE TABLE CENTRUM_LOGISTYCZNE (
+    ID SERIAL PRIMARY KEY,
+    Miasto_ID INT UNIQUE NOT NULL,
+    Nazwa VARCHAR(200) NOT NULL,
+    Adres VARCHAR(255) NOT NULL,
+    Szerokosc_geograficzna DECIMAL(10,8) NOT NULL,
+    Dlugosc_geograficzna DECIMAL(11,8) NOT NULL,
+    Data_utworzenia DATE,
+    Status_ID INT NOT NULL,
+    Pojemnosc INT NOT NULL,
+    FOREIGN KEY (Miasto_ID) REFERENCES MIASTO(ID) ON DELETE CASCADE,
+    FOREIGN KEY (Status_ID) REFERENCES STATUS_CENTRUM(ID)
+);
+
+CREATE TABLE PRACOWNIK (
+    ID SERIAL PRIMARY KEY,
+    Imie VARCHAR(50) NOT NULL,
+    Nazwisko VARCHAR(50) NOT NULL,
+    Email VARCHAR(100) UNIQUE NOT NULL,
+    Telefon VARCHAR(15) UNIQUE NOT NULL,
+    Adres VARCHAR(255),
+    Haslo_hash VARCHAR(255) NOT NULL,
+    Data_zatrudnienia DATE NOT NULL,
+    Data_zwolnienia DATE,
+    Status_ID INT NOT NULL,
+    Rola_ID INT NOT NULL,
+    Centrum_ID INT,
+    FOREIGN KEY (Status_ID) REFERENCES STATUS_PRACOWNIKA(ID),
+    FOREIGN KEY (Rola_ID) REFERENCES ROLA_PRACOWNIKA(ID),
+    FOREIGN KEY (Centrum_ID) REFERENCES CENTRUM_LOGISTYCZNE(ID) ON DELETE SET NULL
+);
+
+CREATE TABLE ADMINISTRATOR (
+    ID SERIAL PRIMARY KEY,
+    Pracownik_ID INT UNIQUE NOT NULL,
+    Data_nadania_uprawnien TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (Pracownik_ID) REFERENCES PRACOWNIK(ID) ON DELETE CASCADE
+);
+
+CREATE TABLE KIEROWNIK_CENTRUM (
+    ID SERIAL PRIMARY KEY,
+    Pracownik_ID INT UNIQUE NOT NULL,
+    Centrum_ID INT NOT NULL,
+    Data_przypisania DATE NOT NULL,
+    FOREIGN KEY (Pracownik_ID) REFERENCES PRACOWNIK(ID) ON DELETE CASCADE,
+    FOREIGN KEY (Centrum_ID) REFERENCES CENTRUM_LOGISTYCZNE(ID) ON DELETE CASCADE
+);
+
+CREATE TABLE PACZKOMAT (
+    ID SERIAL PRIMARY KEY,
+    Kod VARCHAR(7) UNIQUE NOT NULL,
+    Centrum_ID INT NOT NULL,
+    Adres VARCHAR(255) NOT NULL,
+    Szerokosc_geograficzna DECIMAL(10,8) NOT NULL,
+    Dlugosc_geograficzna DECIMAL(11,8) NOT NULL,
+    Liczba_skrytek_S INT,
+    Liczba_skrytek_M INT,
+    Liczba_skrytek_L INT,
+    Status_ID INT NOT NULL,
+    Data_ostatniego_serwisu DATE,
+    FOREIGN KEY (Centrum_ID) REFERENCES CENTRUM_LOGISTYCZNE(ID) ON DELETE CASCADE,
+    FOREIGN KEY (Status_ID) REFERENCES STATUS_PACZKOMATU(ID)
+);
+
+CREATE INDEX idx_paczkomat_centrum ON PACZKOMAT(Centrum_ID);
+
+CREATE TABLE SKRYTKA (
+    ID SERIAL PRIMARY KEY,
+    Paczkomat_ID INT NOT NULL,
+    Numer_skrytki INT NOT NULL,
+    Rozmiar_ID INT NOT NULL,
+    Status_ID INT NOT NULL,
+    Data_ostatniej_kontroli TIMESTAMP,
+    FOREIGN KEY (Paczkomat_ID) REFERENCES PACZKOMAT(ID) ON DELETE CASCADE,
+    FOREIGN KEY (Rozmiar_ID) REFERENCES ROZMIAR_SKRYTKI(ID),
+    FOREIGN KEY (Status_ID) REFERENCES STATUS_SKRYTKI(ID),
+    UNIQUE (Paczkomat_ID, Numer_skrytki)
+);
+
+CREATE TABLE PRZESYLKA (
+    ID SERIAL PRIMARY KEY,
+    Numer_przesylki VARCHAR(20) UNIQUE NOT NULL,
+    Nadawca_ID INT NOT NULL,
+    Odbiorca_ID INT NOT NULL,
+    Paczkomat_nadania_ID INT NOT NULL,
+    Paczkomat_docelowy_ID INT NOT NULL,
+    Rozmiar_ID INT NOT NULL,
+    Wymiary_dlugosc INT NOT NULL,
+    Wymiary_szerokosc INT NOT NULL,
+    Wymiary_wysokosc INT NOT NULL,
+    Waga_nadania DECIMAL(5,2) NOT NULL,
+    Koszt DECIMAL(8,2) NOT NULL,
+    Status_ID INT NOT NULL,
+    Data_nadania TIMESTAMP,
+    Data_planowanej_dostawy TIMESTAMP,
+    Data_dostarczenia TIMESTAMP,
+    Uwagi VARCHAR(255),
+    Flaga_uszkodzona BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (Nadawca_ID) REFERENCES KLIENT(ID) ON DELETE CASCADE,
+    FOREIGN KEY (Odbiorca_ID) REFERENCES KLIENT(ID) ON DELETE CASCADE,
+    FOREIGN KEY (Paczkomat_nadania_ID) REFERENCES PACZKOMAT(ID) ON DELETE CASCADE,
+    FOREIGN KEY (Paczkomat_docelowy_ID) REFERENCES PACZKOMAT(ID) ON DELETE CASCADE,
+    FOREIGN KEY (Rozmiar_ID) REFERENCES ROZMIAR_PRZESYLKI(ID),
+    FOREIGN KEY (Status_ID) REFERENCES STATUS_PRZESYLKI(ID)
+);
+
+CREATE INDEX idx_przesylka_nadawca ON PRZESYLKA(Nadawca_ID);
+CREATE INDEX idx_przesylka_odbiorca ON PRZESYLKA(Odbiorca_ID);
+
+CREATE TABLE HISTORIA_STATUSU (
+    ID SERIAL PRIMARY KEY,
+    Przesylka_ID INT NOT NULL,
+    Status_z_ID INT,
+    Status_na_ID INT NOT NULL,
+    Data_zmiany TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    Zmienil VARCHAR(100),
+    Uwagi VARCHAR(255),
+    FOREIGN KEY (Przesylka_ID) REFERENCES PRZESYLKA(ID) ON DELETE CASCADE,
+    FOREIGN KEY (Status_z_ID) REFERENCES STATUS_PRZESYLKI(ID),
+    FOREIGN KEY (Status_na_ID) REFERENCES STATUS_PRZESYLKI(ID)
+);
+
+CREATE INDEX idx_historia_przesylka ON HISTORIA_STATUSU(Przesylka_ID);
+
+CREATE TABLE REZERWACJA_SKRYTKI (
+    Przesylka_ID INT NOT NULL,
+    Skrytka_ID INT NOT NULL,
+    Data_rezerwacji TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Data_wygasniecia TIMESTAMP NOT NULL,
+    Status_ID INT NOT NULL,
+    PRIMARY KEY (Przesylka_ID, Skrytka_ID),
+    FOREIGN KEY (Przesylka_ID) REFERENCES PRZESYLKA(ID) ON DELETE CASCADE,
+    FOREIGN KEY (Skrytka_ID) REFERENCES SKRYTKA(ID) ON DELETE CASCADE,
+    FOREIGN KEY (Status_ID) REFERENCES STATUS_REZERWACJI(ID)
+);
+
+CREATE TABLE MACIERZ_ODLEGLOSCI_MIAST (
+    ID SERIAL PRIMARY KEY,
+    Miasto_z_ID INT NOT NULL,
+    Miasto_do_ID INT NOT NULL,
+    Dystans_km DECIMAL(8,2) NOT NULL,
+    Flaga_sasiedztwa BOOLEAN DEFAULT FALSE,
+    Data_aktualizacji TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    Uwagi VARCHAR(255),
+    FOREIGN KEY (Miasto_z_ID) REFERENCES MIASTO(ID) ON DELETE CASCADE,
+    FOREIGN KEY (Miasto_do_ID) REFERENCES MIASTO(ID) ON DELETE CASCADE,
+    UNIQUE (Miasto_z_ID, Miasto_do_ID)
+);
+
+CREATE INDEX idx_macierz_miasta ON MACIERZ_ODLEGLOSCI_MIAST(Miasto_z_ID, Miasto_do_ID);
+
+CREATE TABLE TRASA_DOSTAWY (
+    ID SERIAL PRIMARY KEY,
+    Centrum_ID INT NOT NULL,
+    Paczkomat_ID INT NOT NULL,
+    Przesylka_ID INT NOT NULL,
+    Data_utworzenia TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    Status_ID INT NOT NULL,
+    FOREIGN KEY (Centrum_ID) REFERENCES CENTRUM_LOGISTYCZNE(ID) ON DELETE CASCADE,
+    FOREIGN KEY (Paczkomat_ID) REFERENCES PACZKOMAT(ID) ON DELETE CASCADE,
+    FOREIGN KEY (Przesylka_ID) REFERENCES PRZESYLKA(ID) ON DELETE CASCADE,
+    FOREIGN KEY (Status_ID) REFERENCES STATUS_TRASY(ID)
+);
+
+CREATE TABLE LOGI_SYSTEMOWE (
+    ID SERIAL PRIMARY KEY,
+    Pracownik_ID INT,
+    Klient_ID INT,
+    Typ_akcji VARCHAR(50) NOT NULL,
+    Opis_akcji TEXT NOT NULL,
+    Data_akcji TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    IP_adres VARCHAR(45),
+    Status_ID INT NOT NULL,
+    FOREIGN KEY (Pracownik_ID) REFERENCES PRACOWNIK(ID) ON DELETE SET NULL,
+    FOREIGN KEY (Klient_ID) REFERENCES KLIENT(ID) ON DELETE SET NULL,
+    FOREIGN KEY (Status_ID) REFERENCES STATUS_AKCJI(ID)
+);
+
+CREATE INDEX idx_logi_pracownik ON LOGI_SYSTEMOWE(Pracownik_ID);
+CREATE INDEX idx_logi_klient ON LOGI_SYSTEMOWE(Klient_ID);
+CREATE INDEX idx_logi_data ON LOGI_SYSTEMOWE(Data_akcji);

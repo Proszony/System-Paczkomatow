@@ -36,7 +36,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="paczkomat_nadania_id" class="form-label">Paczkomat Nadania</label>
+                            <label for="paczkomat_nadania_id" class="form-label">Paczkomat nadania</label>
                             <select class="form-select" id="paczkomat_nadania_id" name="paczkomat_nadania_id" required>
                                 <option value="">-- Wybierz paczkomat --</option>
                                 {% for paczkomat in paczkomaty %}
@@ -113,7 +113,7 @@
 
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label for="koszt_przesylki" class="form-label">Przewidywany Koszt</label>
+                            <label for="koszt_przesylki" class="form-label">Przewidywany koszt</label>
                             <input type="text" class="form-control" id="koszt_przesylki" readonly value="-- zł">
                         </div>
                     </div>
@@ -124,7 +124,7 @@
                 <!-- PRZYCISKI -->
                 <div class="mt-4">
                     <button type="submit" class="btn btn-success btn-lg">
-                        ✅ Utwórz Przesyłkę
+                        ✅ Utwórz przesyłkę
                     </button>
                     <a href="{{ url_for('klient.dashboard') }}" class="btn btn-secondary btn-lg">
                         Anuluj
@@ -139,7 +139,7 @@
         <div class="col-md-4">
             <div class="card bg-light">
                 <div class="card-body">
-                    <h5 class="card-title">💡 Ceny Rozmiarów</h5>
+                    <h5 class="card-title">💡 Ceny rozmiarów</h5>
                     <ul class="list-unstyled">
                         <li><strong>S (Small):</strong> 5 zł</li>
                         <li><strong>M (Medium):</strong> 10 zł</li>
@@ -152,7 +152,7 @@
         <div class="col-md-4">
             <div class="card bg-light">
                 <div class="card-body">
-                    <h5 class="card-title">⚖️ Cena za Wagę</h5>
+                    <h5 class="card-title">⚖️ Cena za wagę</h5>
                     <ul class="list-unstyled">
                         <li><strong>Do 10 kg:</strong> 0 zł</li>
                         <li><strong>Ponad 10 kg:</strong> +5 zł</li>
@@ -164,7 +164,7 @@
         <div class="col-md-4">
             <div class="card bg-light">
                 <div class="card-body">
-                    <h5 class="card-title">📐 Formuła Ceny</h5>
+                    <h5 class="card-title">📐 Formuła ceny</h5>
                     <code>
                         Koszt = (0.05 × Dystans km)<br>
                         + Cena rozmiaru<br>
