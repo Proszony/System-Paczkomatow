@@ -29,7 +29,7 @@
                         ✅ Odbierz przesyłkę
                     </button>
                 </form>
-            {% elif przesylka.status == 'Odebrana' and przesylka.odbiorca_id == session['user_id'] and przesylka.flaga_szkodzona == false %}
+            {% elif przesylka.status == 'Odebrana' and przesylka.odbiorca_id == session['user_id'] and przesylka.flaga_uszkodzona == false %}
 	        <form method="POST" action="{{ url_for('przesylka.zglos_uszkodzenie',
 		                                   przesylka_id=przesylka.id) }}">
 		    <button type="submit" class="btn btn-outline-danger btn-sm"
