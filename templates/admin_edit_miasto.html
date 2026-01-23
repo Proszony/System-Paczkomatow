@@ -5,9 +5,9 @@
 {% block content %}
 <div class="container mt-5">
     {% if miasto and miasto.id %}
-        <h1>✏️ Edycja Miasta</h1>
+        <h1>✏️ Edycja miasta</h1>
     {% else %}
-        <h1>➕ Dodaj Nowe Miasto</h1>
+        <h1>➕ Dodaj nowe miasto</h1>
     {% endif %}
     
     {% if blad %}
@@ -19,21 +19,21 @@
 
     <form method="POST" class="mt-4">
         <div class="mb-3">
-            <label for="nazwa" class="form-label">Nazwa Miasta *</label>
+            <label for="nazwa" class="form-label">Nazwa miasta *</label>
             <input type="text" class="form-control" id="nazwa" name="nazwa" 
                    value="{{ miasto.nazwa or '' }}" required>
             <small class="form-text text-muted">Minimum 2 znaki</small>
         </div>
 
         <div class="mb-3">
-            <label for="kod" class="form-label">Kod Miasta *</label>
+            <label for="kod" class="form-label">Kod miasta *</label>
             <input type="text" class="form-control" id="kod" name="kod" 
                    value="{{ miasto.kod or '' }}" maxlength="3" required>
             <small class="form-text text-muted">Dokładnie 3 znaki (np. WAW, KRA, WRO)</small>
         </div>
 
         <div class="mb-3">
-            <label for="szerokosc" class="form-label">Szerokość Geograficzna *</label>
+            <label for="szerokosc" class="form-label">Szerokość geograficzna *</label>
             <input type="number" class="form-control" id="szerokosc" name="szerokosc_geograficzna" 
                    value="{{ miasto.szerokosc_geograficzna or '' }}" 
                    step="0.00000001" min="-90" max="90" required>
@@ -41,7 +41,7 @@
         </div>
 
         <div class="mb-3">
-            <label for="dlugosc" class="form-label">Długość Geograficzna *</label>
+            <label for="dlugosc" class="form-label">Długość geograficzna *</label>
             <input type="number" class="form-control" id="dlugosc" name="dlugosc_geograficzna" 
                    value="{{ miasto.dlugosc_geograficzna or '' }}" 
                    step="0.00000001" min="-180" max="180" required>
@@ -49,7 +49,7 @@
         </div>
 
         <div class="mb-3">
-            <label for="liczba_mieszkancow" class="form-label">Liczba Mieszkańców</label>
+            <label for="liczba_mieszkancow" class="form-label">Liczba mieszkańców</label>
             <input type="number" class="form-control" id="liczba_mieszkancow" name="liczba_mieszkancow" 
                    value="{{ miasto.liczba_mieszkancow or '' }}" min="0">
             <small class="form-text text-muted">Opcjonalnie</small>

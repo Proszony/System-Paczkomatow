@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h1>📮 Nadaj Nową Przesyłkę</h1>
+    <h1>📮 Nadaj nową przesyłkę</h1>
 
     {% if blad %}
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -53,7 +53,7 @@
                         <h5 class="mb-3">📥 Odbiorca</h5>
                         
                         <div class="mb-3">
-                            <label for="odbiorca_id" class="form-label">Wybierz Odbiorcę</label>
+                            <label for="odbiorca_id" class="form-label">Wybierz odbiorcę</label>
                             <select class="form-select" id="odbiorca_id" name="odbiorca_id" required>
                                 <option value="">-- Wybierz odbiorcę --</option>
                                 {% for klient in odbiorcy %}
@@ -65,7 +65,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="paczkomat_docelowy_id" class="form-label">Paczkomat Docelowy</label>
+                            <label for="paczkomat_docelowy_id" class="form-label">Paczkomat docelowy</label>
                             <select class="form-select" id="paczkomat_docelowy_id" name="paczkomat_docelowy_id" required>
                                 <option value="">-- Wybierz paczkomat --</option>
                                 {% for paczkomat in paczkomaty %}
@@ -81,7 +81,7 @@
                 <hr>
 
                 <!-- PARAMETRY PRZESYŁKI -->
-                <h5 class="mb-3">📦 Parametry Przesyłki</h5>
+                <h5 class="mb-3">📦 Parametry przesyłki</h5>
 
                 <div class="row">
                     <div class="col-md-4">

@@ -142,7 +142,7 @@ def oblicz_koszt_przesylki(paczkomat_nadania_id, paczkomat_docelowy_id, rozmiar_
             'cena_wagi': cena_wagi
         }
     except psycopg2.Error as e:
-        print(f"❌ Błąd zapytania: {e}")
+        print(f" Błąd zapytania: {e}")
         return None
 
 

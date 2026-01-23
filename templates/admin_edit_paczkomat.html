@@ -5,9 +5,9 @@
 {% block content %}
 <div class="container mt-5">
     {% if paczkomat and paczkomat.id %}
-        <h1>✏️ Edycja Paczkomatu</h1>
+        <h1>✏️ Edycja aczkomatu</h1>
     {% else %}
-        <h1>➕ Dodaj Nowy Paczkomat</h1>
+        <h1>➕ Dodaj nowy paczkomat</h1>
     {% endif %}
     
     {% if blad %}
@@ -20,7 +20,7 @@
     <form method="POST" class="mt-4">
         <!-- Kod paczkomatu -->
         <div class="mb-3">
-            <label for="kod" class="form-label">Kod Paczkomatu</label>
+            <label for="kod" class="form-label">Kod paczkomatu</label>
             <input type="text" class="form-control" id="kod" name="kod"
                    value="{{ paczkomat.kod if paczkomat else '' }}"
                    placeholder="ABC1234" required>
@@ -58,7 +58,7 @@
         <!-- Centrum logistyczne -->
         {% if centra %}
         <div class="mb-3">
-            <label for="centrum_id" class="form-label">Centrum Logistyczne</label>
+            <label for="centrum_id" class="form-label">Centrum logistyczne</label>
             <select class="form-select" id="centrum_id" name="centrum_id" required>
                 <option value="">-- Wybierz centrum --</option>
                 {% for centrum in centra %}

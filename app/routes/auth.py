@@ -84,7 +84,7 @@ def login():
                 return redirect(url_for('klient.dashboard'))
             
             
-            return render_template("login.html", blad="❌ Błędny email lub hasło")
+            return render_template("login.html", blad="Błędny email lub hasło")
         
         except psycopg2.Error as e:
             return render_template("login.html", blad=f"Błąd bazy danych: {str(e)[:100]}"), 500
@@ -120,28 +120,28 @@ def register():
 
         
         if not all([imie, nazwisko, email, telefon, haslo]):
-            return render_template("register.html", blad="❌ Wszystkie pola są wymagane")
+            return render_template("register.html", blad="Wszystkie pola są wymagane")
 
         if len(imie) < 2:
-            return render_template("register.html", blad="❌ Imię musi mieć min. 2 znaki")
+            return render_template("register.html", blad="Imię musi mieć min. 2 znaki")
 
         if len(nazwisko) < 2:
-            return render_template("register.html", blad="❌ Nazwisko musi mieć min. 2 znaki")
+            return render_template("register.html", blad="Nazwisko musi mieć min. 2 znaki")
 
         if len(haslo) < 6:
-            return render_template("register.html", blad="❌ Hasło musi mieć min. 6 znaków")
+            return render_template("register.html", blad="Hasło musi mieć min. 6 znaków")
 
         is_valid, err = validate_email(email)
         if not is_valid:
-            return render_template("register.html", blad=f"❌ {err}")
+            return render_template("register.html", blad=f"{err}")
 
         is_valid, err = validate_phone(telefon)
         if not is_valid:
-            return render_template("register.html", blad=f"❌ {err}")
+            return render_template("register.html", blad=f"{err}")
 
         conn = get_conn()
         if not conn:
-            return render_template("register.html", blad="❌ Błąd połączenia z bazą"), 500
+            return render_template("register.html", blad="Błąd połączenia z bazą"), 500
 
         try:
             cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -156,7 +156,7 @@ def register():
             if cur.fetchone():
                 return render_template(
                     "register.html",
-                    blad="❌ Konto z takim adresem e‑mail lub numerem telefonu już istnieje"
+                    blad="Konto z takim adresem e‑mail lub numerem telefonu już istnieje"
                 )
 
             
@@ -191,14 +191,14 @@ def register():
             
             return render_template(
                 "register.html",
-                blad="❌ Konto z takim adresem e‑mail lub numerem telefonu już istnieje"
+                blad="Konto z takim adresem e‑mail lub numerem telefonu już istnieje"
             ), 400
 
         except psycopg2.Error as e:
             conn.rollback()
             return render_template(
                 "register.html",
-                blad=f"❌ Błąd bazy danych: {str(e)[:100]}"
+                blad=f"Błąd bazy danych: {str(e)[:100]}"
             ), 500
 
         finally:
