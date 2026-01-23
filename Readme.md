@@ -13,7 +13,7 @@ Drzewo katalogowe projketu:
 │       ├── kierownik.py
 │       ├── klient.py
 │       ├── mapa.py
-│       └──  przesylka.py
+│       └── przesylka.py
 ├── app_main.py
 ├── requirements.txt
 ├── static
