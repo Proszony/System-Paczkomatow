@@ -15,6 +15,11 @@ Drzewo katalogowe projketu:
 │       ├── mapa.py
 │       └── przesylka.py
 ├── app_main.py
+├── cbdctl
+├── cbd_db_seed.sql
+├── config.py
+├── init_cdb_db.sql
+├── Readme.md
 ├── requirements.txt
 ├── static
 │   ├── centrum-marker.png
@@ -28,10 +33,10 @@ Drzewo katalogowe projketu:
     ├── admin_dashboard.html
     ├── admin_edit_centrum.html
     ├── admin_edit_klient.html
-    ├── admin_edit_miasto.html
-    ├── admin_edit_paczkomat.html
+    ├── admin_edit_miasto.html
+    ├── admin_edit_paczkomat.html
     ├── admin_edytuj_klienta.html
-    ├── admin_edytuj_pracownika.html
+    ├── admin_edytuj_pracownika.html
     ├── admin_edytuj_przesylke.html
     ├── admin_miasta.html
     ├── admin_miasta_template.html
