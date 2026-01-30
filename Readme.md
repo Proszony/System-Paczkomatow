@@ -15,7 +15,6 @@ Drzewo katalogowe projketu:
 │       ├── mapa.py
 │       └── przesylka.py
 ├── app_main.py
-├── cbdctl
 ├── cbd_db_seed.sql
 ├── config.py
 ├── init_cdb_db.sql
