@@ -1,4 +1,4 @@
-Drzewo katalogowe projketu:
+Drzewo katalogowe projektu:
 ```text
 .
 ├── app
